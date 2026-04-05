@@ -1,0 +1,24 @@
+{
+  "name": "comics-web-react",
+  "version": "1.0.0",
+  "description": "Comics-Web-REACT LEARN",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khoicoder/Comics-Web-REACT.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/khoicoder/Comics-Web-REACT/issues"
+  },
+  "homepage": "https://github.com/khoicoder/Comics-Web-REACT#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
