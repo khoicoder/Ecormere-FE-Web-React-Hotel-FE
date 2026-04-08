@@ -4,8 +4,10 @@
   "description": "Comics-Web-REACT LEARN",
   "main": "index.js",
   "scripts": {
-    "start": "react-scripts start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "react-scripts start",
+    "build": "react-scripts build",
+
+    "test": "echo \"Error: no test specified\" && exit 1, đang test..."
   },
   "repository": {
     "type": "git",
@@ -14,13 +16,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "bugs": {
     "url": "https://github.com/khoicoder/Comics-Web-REACT/issues"
   },
-  "homepage": "https://github.com/khoicoder/Comics-Web-REACT#readme",
   "dependencies": {
-    "express": "^5.2.1",
+    
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.14.0",
