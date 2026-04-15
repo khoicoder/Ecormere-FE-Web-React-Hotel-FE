@@ -1,5 +1,6 @@
 import ReactDOM from "react-dom/client";
 import App from "./App.js";
+import "./assets/styles/index.css";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 export default function index() {
     
