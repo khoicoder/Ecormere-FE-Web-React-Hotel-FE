@@ -10,21 +10,28 @@ function App() {
 
   console.log("App component đã render....");
   return (
-    
-    <BrowserRouter>
-      <Header />
+    <div className="min-h-screen flex flex-col">
+      <BrowserRouter>
+        
+        <Header />
+
         <Suspense fallback={<Loading />}>
-        
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/register" element={<RegisterScreen />} />
-      </Routes>
-        
-      </Suspense>
-      <Footer />
-    </BrowserRouter>
-   
+    {/*Sử dụng các component được lazy load ở đây --> */}
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<LoginScreen />} />
+              <Route path="/register" element={<RegisterScreen />} />
+            </Routes>
+          </main>
+
+        </Suspense>
+
+        <Footer />
+
+      </BrowserRouter>
+    </div>
   );
+
 }
 export default App;
