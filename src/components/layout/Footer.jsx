@@ -31,7 +31,9 @@ function Footer() {
           <h3 className="font-semibold mb-3">Contact</h3>
           <p className="text-gray-400 text-sm">📍 Can Tho, Vietnam</p>
           <p className="text-gray-400 text-sm">📞 0362629669</p>
-          <p className="text-gray-400 text-sm">🌐 www.facebook.com/Ma.progame.101</p>
+          <a href="https://www.facebook.com/Ma.progame.101" target="_blank" rel="noopener noreferrer" className="text-gray-400 text-sm">
+            🌐 www.facebook.com/Ma.progame.101
+          </a>
           <p className="text-gray-400 text-sm">📧 hotelwithme@gmail.com</p>
         </div>
       </div>
