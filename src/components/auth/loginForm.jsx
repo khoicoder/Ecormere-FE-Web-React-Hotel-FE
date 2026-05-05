@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { loginAPI } from "../../services/authService.js";
-
+import { useNavigate } from "react-router-dom";
 export default function LoginForm() {
+const navigate = useNavigate();
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -18,9 +19,14 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       const response = await loginAPI(form);
-      // Lưu token vào localStorage
+      
       localStorage.setItem("token", response.token);
+      localStorage.setItem("username", form.username);
       console.log("Login successful:", response);
+      navigate("/home");
+
+
+      
     } catch (error) {
       console.error("Login failed:", error);
     }
