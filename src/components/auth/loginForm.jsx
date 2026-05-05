@@ -18,6 +18,7 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       const response = await loginAPI(form);
+      // Lưu token vào localStorage
       localStorage.setItem("token", response.token);
       console.log("Login successful:", response);
     } catch (error) {

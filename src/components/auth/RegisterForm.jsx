@@ -1,4 +1,4 @@
-    import {useState} from "react";
+import {useState} from "react";
 import {registerAPI} from "../../services/authService.js";
 export default function RegisterForm() {
     const[form,setForm] = useState({
@@ -15,6 +15,7 @@ export default function RegisterForm() {
         e.preventDefault();
         try {
             const response = await registerAPI(form);
+
 
             console.log("Registration successful:", response);
         }

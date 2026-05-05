@@ -1,7 +1,8 @@
   import {useEffect, useState} from "react";
   import HotelCard from "../../components/hotel/HotelCard";
   import RoomCard from "../../components/room/RoomCard";
-  // import { getHotels } from "../../services/hotelService"; // bật khi có BE
+
+ import { getHotels } from "../../services/hotelService"; // bật khi có BE
   export default function HomeDetail() {
   const [hotels , setHotels] = useState([]);
   const [selectedHotel, setSelectedHotel] = useState(null);
