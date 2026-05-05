@@ -22,6 +22,9 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<LoginScreen />} />
               <Route path="/register" element={<RegisterScreen />} />
+              <Route path="*" element={<div className="text-center text-2xl mt-10">404 - Page Not Found</div>} />
+              <Route path="/dashboard" element={<div className="text-center text-2xl mt-10">Dashboard</div>} />
+              <Route path="/profile" element={<div className="text-center text-2xl mt-10">Profile</div>} />
             </Routes>
           </main>
 

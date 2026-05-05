@@ -1,8 +1,8 @@
 import api from "./api";
 export const getHotels = async () => {
-     return api.get("/api/hotels");
+     return api.get("/hotels");
 };
 
 export const getHotelById = async (id) => {
-     return api.get(`/api/hotels/${id}`);
+     return api.get(`/hotels/${id}`);
 };
