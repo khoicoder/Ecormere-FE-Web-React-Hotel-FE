@@ -50,7 +50,10 @@
             password : form.password,
         });
             console.log("Registration successful:", form.username, form.password);
-            navigate("/login");
+            localStorage.setItem("username", form.username);
+
+
+            navigate("/");
             }
             catch (error) {
             console.error("Registration failed:", error);

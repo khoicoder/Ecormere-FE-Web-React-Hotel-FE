@@ -8,7 +8,7 @@ export default function HotelCard({ hotel, onClick }) {
       <h3 className="text-lg text-gray-600">{hotel.location}</h3>
       
       <p className="text-gray-500 mt-2">
-        {hotel.rooms.length || 0} rooms
+        {hotel.rooms?.length || 0} rooms
       </p>
     </div>
   );
