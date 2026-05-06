@@ -23,15 +23,13 @@ const navigate = useNavigate();
       localStorage.setItem("token", response.token);
       localStorage.setItem("username", form.username);
       console.log("Login successful:", response);
-      navigate("/home");
+      navigate("/");
 
-
-      
     } catch (error) {
       console.error("Login failed:", error);
     }
   };
-
+  
   return (
     <div className="bg-white p-8 rounded-2xl shadow-xl w-[400px]">
       <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
