@@ -6,7 +6,6 @@ import { getHotels } from "../../services/hotelService";
 export default function HomeDetail() {
   const [hotels, setHotels] = useState([]);
   const [selectedHotel, setSelectedHotel] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -20,7 +19,6 @@ export default function HomeDetail() {
 
       const res = await getHotels();
       console.log("Fetched hotels:", res.data);
-
       const data = Array.isArray(res.data) ? res.data : [];
       
       setHotels(data);
@@ -140,9 +138,9 @@ export default function HomeDetail() {
         <>
           <div className="mb-6 flex items-center justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold">🔥 Hotels nổi bật</h1>
+              <h1 className="text-3xl font-bold border-b-2 border-red-500 pb-2">Hotels nổi bật</h1>
               <p className="text-gray-500">
-                Danh sách khách sạn lấy trực tiếp từ database.
+                Danh sách khách sạn được sắp xếp theo đánh giá từ cao đến thấp.
               </p>
             </div>
 
@@ -180,6 +178,11 @@ export default function HomeDetail() {
 
               <h1 className="text-3xl font-bold">{selectedHotel?.name}</h1>
               <p className="text-gray-600">📍 {selectedHotel?.location}</p>
+              <img
+                src={selectedHotel?.image}
+                alt={selectedHotel?.name}
+                className="my-4 w-full max-w-md rounded-lg object-cover"
+              /> 
               <p className="mt-1 text-sm text-gray-500">
                 ⭐ {selectedHotel?.rating ?? "Chưa có đánh giá"}
               </p>
