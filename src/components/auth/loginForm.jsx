@@ -20,9 +20,12 @@ const navigate = useNavigate();
     try {
       const response = await loginAPI(form);
       
-      localStorage.setItem("token", response.token);
+      localStorage.setItem("accessToken", response.accessToken);
       localStorage.setItem("username", form.username);
+      localStorage.setItem("ROLE", response.role);
+      
       console.log("Login successful:", response);
+      
       navigate("/");
 
     } catch (error) {
