@@ -6,7 +6,6 @@ export default function index() {
     
     root.render(  
             <App />
-            
     );
 
     setTimeout(() => {

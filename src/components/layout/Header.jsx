@@ -5,13 +5,15 @@ export default function Header() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("accessToken") || null;
   const username = localStorage.getItem("username") || null;
   const avatarLetter = username ? username.charAt(0).toUpperCase() : "";
-
+  const role = localStorage.getItem("ROLE") || null;
+  
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
     localStorage.removeItem("username");
+    localStorage.removeItem("ROLE");
     setOpen(false);
     navigate("/login");
   };
@@ -82,6 +84,15 @@ export default function Header() {
                   Settings
                 </Link>
 
+                {role === "ADMIN" && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setOpen(false)}
+                    className="block px-4 py-3 hover:bg-gray-100"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
 
                 <button
                   onClick={handleLogout}
