@@ -1,2 +1,2 @@
 # Comics-Web-REACT
-Comics-Web-REACT LEARN
+Ecormere-FE-Web-React-Hotel-FE
