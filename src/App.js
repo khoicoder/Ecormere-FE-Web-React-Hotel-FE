@@ -6,6 +6,7 @@ import Footer from "./components/layout/Footer.jsx";
 import { Home  } from "./navigation/LazyNavigator.js";
 import RegisterScreen from "./screens/Register/Register.Screen.jsx";
 import LoginScreen from "./screens/Login/Login.Screen.jsx";
+import ProfileScreen from "./screens/Profile/Profile.Srceen.jsx";
 function App() {
 
   console.log("App component đã render....");
@@ -24,7 +25,7 @@ function App() {
               <Route path="/register" element={<RegisterScreen />} />
               <Route path="*" element={<div className="text-center text-2xl mt-10">404 - Page Not Found</div>} />
               <Route path="/dashboard" element={<div className="text-center text-2xl mt-10">Dashboard</div>} />
-              <Route path="/profile" element={<div className="text-center text-2xl mt-10">Profile</div>} />
+              <Route path="/profile" element={<ProfileScreen />} />
             </Routes>
           </main>
 
