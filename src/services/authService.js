@@ -30,3 +30,13 @@ export const loginAPI = async (data) => {
         throw error;
     }
 }
+export const logoutAPI = async () => {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/logout`);
+        console.log("Logout API response:", response);
+        return response.data;
+    } catch (error) {
+        console.error("lỗi auth của logout:", error);
+        throw error;
+    }
+}

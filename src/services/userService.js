@@ -1,17 +1,21 @@
-import { Router } from "express";
-import {
-  getUser,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "../controllers/userController.js";
+const API_BASE_URL = "http://localhost:8080/api";
+import api from "./api";
 
-const router = Router();
 
-router.get("/users/:id", getUser);
-router.post("/users", createUser);
-router.put("/users/:id", updateUser);
-router.delete("/users/:id", deleteUser);
-
-export default router;
-//?
+export const getUserProfile =async () => {
+        try {
+            const response = await api.get(`${API_BASE_URL}/profile`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+            throw error;
+        }
+}
+export const updateUserProfile = async (data) => {
+    try {        
+      const response = await api.put(`${API_BASE_URL}/profile-update`, data);
+      return response.data;
+    } catch (error) {
+        console.error("Error updating user profile:", error);
+        throw error;
+    }}
