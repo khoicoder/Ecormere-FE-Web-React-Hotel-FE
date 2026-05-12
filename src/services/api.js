@@ -7,7 +7,6 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
-try{
   api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -15,10 +14,9 @@ try{
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
-  })
-}catch(err){
-  console.error("API initialization error:", err);
-  console.error("API interceptor setup failed. Requests may not include auth token.");
-}
+  },(err) => {
+    return Promise.reject(err);
+
+});
 
 export default api;
