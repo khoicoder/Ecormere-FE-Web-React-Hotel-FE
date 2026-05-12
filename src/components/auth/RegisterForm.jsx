@@ -8,6 +8,7 @@
         const[form,setForm] = useState({
             username:"" ,
             password:"",
+            email:"",
             confirmPassword:""
         })
         const validatePassword = (password) => {
@@ -28,7 +29,7 @@
             console.log("Form data before validation:", form);
 
         // 1. check rỗng
-    if (!form.username || !form.password || !form.confirmPassword) {
+    if (!form.username || !form.password || !form.confirmPassword || !form.email) {
     setError("Vui lòng nhập đầy đủ thông tin");
     return;
     }
@@ -48,9 +49,12 @@
             await registerAPI({
             username : form.username,
             password : form.password,
+            email : form.email
         });
             console.log("Registration successful:", form.username, form.password);
             localStorage.setItem("username", form.username);
+            localStorage.setItem("password", form.password);
+            localStorage.setItem("email", form.email);
 
 
             navigate("/");
@@ -69,7 +73,12 @@
             onChange={handleChange}
             className="w-full p-2 border rounded-lg"
             />
-
+            <input
+            name="email"
+            placeholder="Email"
+            onChange={handleChange}
+            className="w-full p-2 border rounded-lg"
+            />
             <input
             type="password"
             name="password"
