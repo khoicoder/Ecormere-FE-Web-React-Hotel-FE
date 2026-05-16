@@ -57,6 +57,7 @@ export default function ProfileForm() {
     };
 
     const handleChange = (e) => {
+        
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
     const toggleEdit = (field) => {
@@ -70,9 +71,8 @@ export default function ProfileForm() {
         e.preventDefault();
         setLoading(true);
         setMessage("");
-
-        try {
-            const payload = {};
+        ;
+        const payload = {};
             if(editMode.username) payload.username = formData.username;
             if(editMode.email) payload.email = formData.email;
             if(editMode.phone) payload.phone = formData.phone;
@@ -82,14 +82,40 @@ export default function ProfileForm() {
                 payload.currentPassword = formData.currentPassword;
                 payload.newPassword = formData.newPassword;
             }
-                
+            console.log("EDIT MODE:", editMode)
+            console.log("PAYLOAD UPDATE PROFILE:", payload);
+            console.log("FORM DATA:", formData);
+
+
+        try {
+
+            const data = await updateUserProfile(payload);
+            console.log("RESPONSE UPDATE PROFILE:", data);
+            if (data.accessToken) {
+            localStorage.setItem("accessToken", data.accessToken);
+        }
+
+        if (data.refreshToken) {
+            localStorage.setItem("refreshToken", data.refreshToken);
+        }
+
+        if (data.username) {
+            localStorage.setItem("username", data.username);
+        }
+
+        if (data.role) {
+            localStorage.setItem("role", data.role);
+        }
+
+            
+        
+
+        
+        
                     
 
-            const data = await updateUserProfile(formData);
-            if (data.accessToken) {
-                localStorage.setItem("accessToken", data.accessToken);
-                localStorage.setItem("refreshToken", data.refreshToken);
-            }
+    
+
             setMessage("✅ Cập nhật hồ sơ thành công!");
             await fetchData();
             setEditMode({
