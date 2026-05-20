@@ -1,11 +1,23 @@
 import { useState } from "react";
 import { loginAPI } from "../../services/authService.js";
 import { useNavigate } from "react-router-dom";
+
+function getDeviceId() {
+  let deviceId = localStorage.getItem("deviceId");
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem("deviceId", deviceId);
+  }
+  return deviceId;
+}
+
 export default function LoginForm() {
+
 const navigate = useNavigate();
   const [form, setForm] = useState({
     username: "",
     password: "",
+    
   });
 
   const handleChange = (e) => {
@@ -16,14 +28,25 @@ const navigate = useNavigate();
   };
 
   const handleSubmit = async (e) => {
+
     e.preventDefault();
     try {
-      const response = await loginAPI(form);
-      
+      const deviceId = getDeviceId();
+      console.log("Device ID:", deviceId);
+    
+      const response = await loginAPI({
+        ...form,
+         deviceId: deviceId,
+
+      });
+
+     
+
       localStorage.setItem("accessToken", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
       localStorage.setItem("username", form.username);
-      localStorage.setItem("ROLE", response.role);
-      
+      localStorage.setItem("role", response.role);
+      localStorage.setItem("deviceId", deviceId);
       console.log("Login successful:", response);
       
       navigate("/");

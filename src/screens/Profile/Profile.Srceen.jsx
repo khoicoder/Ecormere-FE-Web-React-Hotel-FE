@@ -1,4 +1,4 @@
-import ProfileForm from "../../components/auth/profileForm.jsx";
+import ProfileForm from "../../components/profile/tempProfileForm";
 
 export default function ProfileScreen() {
     return (

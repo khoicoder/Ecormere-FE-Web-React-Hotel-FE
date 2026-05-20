@@ -29,8 +29,6 @@ export default function ProfileForm() {
     });
     
 
-
-
     useEffect(() => {
         fetchData();
     }, []);
@@ -38,6 +36,7 @@ export default function ProfileForm() {
     const fetchData = async () => {
         try {
             const data = await getUserProfile();
+            if(data.profile)
             setProfileData(data);
             setFormData(prev => ({
                 ...prev,
@@ -46,8 +45,6 @@ export default function ProfileForm() {
                 phone: data.phone || "",
                 avatarUrl: data.avatarUrl || "",
                 address: data.address || "",
-                currentPassword: "",
-                newPassword: "",    
                 
             }));
         } catch (error) {
@@ -78,10 +75,7 @@ export default function ProfileForm() {
             if(editMode.phone) payload.phone = formData.phone;
             if(editMode.avatarUrl) payload.avatarUrl = formData.avatarUrl;
             if(editMode.address) payload.address = formData.address;
-            if(editMode.password) {
-                payload.currentPassword = formData.currentPassword;
-                payload.newPassword = formData.newPassword;
-            }
+    
             console.log("EDIT MODE:", editMode)
             console.log("PAYLOAD UPDATE PROFILE:", payload);
             console.log("FORM DATA:", formData);
@@ -124,7 +118,7 @@ export default function ProfileForm() {
                 avatarUrl: false,
                 address: false,
                 phone: false,
-                password: false,
+    
             });
         } catch (error) {
             setMessage("❌ Cập nhật thất bại. Vui lòng thử lại.");
@@ -358,61 +352,9 @@ export default function ProfileForm() {
                                     />
                                 </div>
                             )}
-
-                            {/* Password */}
-                            <div className="rounded-2xl border border-slate-200 p-5">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h4 className="font-semibold text-slate-900">
-                                            Bảo mật
-                                        </h4>
-                                        <p className="text-sm text-slate-500">
-                                            Đổi mật khẩu nếu bạn muốn tăng bảo mật.
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setEditMode({
-                                                ...editMode,
-                                                password: !editMode.password,
-                                            })
-                                        }
-                                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
-                                            editMode.password
-                                                ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                                : "bg-slate-900 text-white hover:bg-slate-800"
-                                        }`}
-                                    >
-                                        {editMode.password ? "Hủy" : "Đổi mật khẩu"}
-                                    </button>
-                                </div>
-
-                                {editMode.password && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
-                                        <input
-                                            type="password"
-                                            name="currentPassword"
-                                            value={formData.currentPassword}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition"
-                                            placeholder="Mật khẩu hiện tại"
-                                        />
-
-                                        <input
-                                            type="password"
-                                            name="newPassword"
-                                            value={formData.newPassword}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition"
-                                            placeholder="Mật khẩu mới"
-                                        />
-                                    </div>
-                                )}
-                            </div>
                         </div>
 
+    
                         {/* Footer */}
                         <div className="px-6 py-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                             <p className="text-sm text-slate-500">
