@@ -1,4 +1,4 @@
-import LoginForm from "../../components/auth/loginForm.jsx";
+import LoginForm from "../../components/auth/tempLoginForm.jsx";
 
 
 function LoginScreen() {

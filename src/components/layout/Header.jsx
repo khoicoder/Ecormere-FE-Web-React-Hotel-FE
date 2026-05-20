@@ -6,14 +6,17 @@ export default function Header() {
   const [open, setOpen] = useState(false);
 
   const token = localStorage.getItem("accessToken") || null;
+  
   const username = localStorage.getItem("username") || null;
   const avatarLetter = username ? username.charAt(0).toUpperCase() : "";
-  const role = localStorage.getItem("ROLE") || null;
+  const role = localStorage.getItem("role") || null;
   
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("username");
-    localStorage.removeItem("ROLE");
+    localStorage.removeItem("role");
+  
     setOpen(false);
     navigate("/login");
   };
