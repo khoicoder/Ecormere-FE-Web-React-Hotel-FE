@@ -1,20 +1,38 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Header() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [avatar, setAvatar] = useState(
+    localStorage.getItem("avatarUrl") || null,
+  );
+
 
   const token = localStorage.getItem("accessToken") || null;
-  
   const username = localStorage.getItem("username") || null;
-  const avatarLetter = username ? username.charAt(0).toUpperCase() : "";
-  const role = localStorage.getItem("role") || null;
   
+  const role = localStorage.getItem("role") || null;
+  useEffect(()=> {
+    const handleProfileUpdate = () => {
+      setAvatar(localStorage.getItem("avatarUrl"));
+    };
+
+    window.addEventListener("profile-updated", handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener("profile-updated", handleProfileUpdate);
+    };
+  }, []);
+
+
+  
+
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("username");
+    localStorage.removeItem("avatarUrl");
     localStorage.removeItem("role");
   
     setOpen(false);
@@ -54,9 +72,17 @@ export default function Header() {
               onClick={() => setOpen(!open)}
               className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 transition"
             >
-              <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
-                {avatarLetter}
-              </div>
+              <div className="w-9 h-9 rounded-full overflow-hidden bg-blue-600 text-white flex items-center justify-center font-bold">
+          {avatar ? (
+            <img
+              src={avatar}
+              alt="avatar"
+              className="w-full h-full object-cover"
+    />
+  ) : (
+    <span>{username?.charAt(0).toUpperCase()}</span>
+  )}
+</div>
               <span className="hidden sm:block text-gray-700 font-medium">
                 {username}
               </span>

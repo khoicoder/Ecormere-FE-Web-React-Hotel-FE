@@ -32,15 +32,14 @@ const navigate = useNavigate();
     e.preventDefault();
     try {
       const deviceId = getDeviceId();
-      console.log("Device ID:", deviceId);
-    
+      
       const response = await loginAPI({
         ...form,
-         deviceId: deviceId,
+          deviceId: deviceId,
 
       });
 
-     
+    
 
       localStorage.setItem("accessToken", response.accessToken);
       localStorage.setItem("refreshToken", response.refreshToken);
