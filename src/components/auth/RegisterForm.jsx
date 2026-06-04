@@ -4,11 +4,12 @@
     export default function RegisterForm() {
         const navigate = useNavigate();
         const [error, setError] = useState("");
+        const [loading, setLoading] = useState(false);
 
         const[form,setForm] = useState({
             username:"" ,
-            password:"",
             email:"",
+            password:"",
             confirmPassword:""
         })
         const validatePassword = (password) => {
@@ -48,20 +49,23 @@
         try {
             await registerAPI({
             username : form.username,
+            email : form.email,
             password : form.password,
-            email : form.email
+            
         });
             console.log("Registration successful:", form.username, form.password);
-            localStorage.setItem("username", form.username);
-            localStorage.setItem("password", form.password);
-            localStorage.setItem("email", form.email);
+    
 
-
-            navigate("/");
+            navigate("/login");
             }
             catch (error) {
             console.error("Registration failed:", error);
-            }   }
+            const message = error.response?.data?.message ||error.response?.data || error.response?.data || "Đăng ký thất bại";
+            setError(message);
+            }finally {
+            setLoading(false);
+            }
+        }
         return (
         <div className="bg-white p-8 rounded-2xl shadow-xl w-[400px]">
         <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
@@ -99,7 +103,7 @@
             )}
 
             <button className="w-full bg-green-500 text-white py-2 rounded-lg">
-            Register
+            {loading ? "Registering..." : "Register"}
             </button>
         </form>
         </div>

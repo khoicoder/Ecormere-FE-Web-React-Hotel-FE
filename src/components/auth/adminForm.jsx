@@ -2,14 +2,12 @@
 // check ROLE before render admin form
 import { useState } from "react";
 export function AdminForm() {
-
-
+    const [message, setMessage] = useState("");
     const [formData, setFormData] = useState({
         username: "",
         email: "",
     });
-    const [message, setMessage] = useState("");
-
+    
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });};
 

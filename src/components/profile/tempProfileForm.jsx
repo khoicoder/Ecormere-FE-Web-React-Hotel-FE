@@ -6,6 +6,7 @@ export default function ProfileForm() {
     const [profileData, setProfileData] = useState(null);
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
+    const[error,setError] = useState("");
     const [editMode, setEditMode] = useState(
         {
         username: false,
@@ -17,7 +18,7 @@ export default function ProfileForm() {
 
         });
     
-
+    
     const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -36,8 +37,12 @@ export default function ProfileForm() {
     const fetchData = async () => {
         try {
             const data = await getUserProfile();
-            if(data.profile)
-            setProfileData(data);
+            if(data){
+                console.log("Dữ liệu hồ sơ người dùng:", data);
+                setProfileData(data);
+
+            }
+            
             setFormData(prev => ({
                 ...prev,
                 username: data.username,
@@ -68,21 +73,20 @@ export default function ProfileForm() {
         e.preventDefault();
         setLoading(true);
         setMessage("");
-        ;
+        setError("");
         const payload = {};
             if(editMode.username) payload.username = formData.username;
             if(editMode.email) payload.email = formData.email;
             if(editMode.phone) payload.phone = formData.phone;
             if(editMode.avatarUrl) payload.avatarUrl = formData.avatarUrl;
             if(editMode.address) payload.address = formData.address;
-    
+
             console.log("EDIT MODE:", editMode)
             console.log("PAYLOAD UPDATE PROFILE:", payload);
             console.log("FORM DATA:", formData);
 
 
         try {
-
             const data = await updateUserProfile(payload);
             console.log("RESPONSE UPDATE PROFILE:", data);
             if (data.accessToken) {
@@ -100,16 +104,11 @@ export default function ProfileForm() {
         if (data.role) {
             localStorage.setItem("role", data.role);
         }
+        if(data.profileResponse.avatarUrl) {
+            localStorage.setItem("avatarUrl", data.profileResponse.avatarUrl);
+        }
 
             
-        
-
-        
-        
-                    
-
-    
-
             setMessage("✅ Cập nhật hồ sơ thành công!");
             await fetchData();
             setEditMode({
