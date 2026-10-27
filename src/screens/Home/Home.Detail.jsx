@@ -4,7 +4,7 @@ import RoomCard from "../../components/room/RoomCard";
 import RoomGridSelector from "../../components/room/RoomGridSelector";
 import { getHotels } from "../../services/hotelService";
 import { syncHotelWithBookings } from "../../services/bookingService";
-
+import { LoadingState, EmptyState, ErrorState } from "../../components/ui/FeedbackStates";
 
 export default function HomeDetail() {
   const [hotels, setHotels] = useState([]);
@@ -22,7 +22,7 @@ export default function HomeDetail() {
       setHotels(data);
     } catch (err) {
       console.error("Error fetching hotels:", err);
-      setError("Không tải được dữ liệu khách sạn. Đang sử dụng dữ liệu thử nghiệm.");
+      setError("Không thể tải dữ liệu khách sạn từ máy chủ Backend. Vui lòng kiểm tra lại dịch vụ.");
     } finally {
       setLoading(false);
     }
@@ -49,27 +49,33 @@ export default function HomeDetail() {
     };
   }, []);
 
-
   const sortedHotels = useMemo(() => {
     return [...hotels].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
   }, [hotels]);
 
   if (loading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-red-500 border-t-transparent"></div>
-          <h2 className="text-xl font-bold text-slate-700">
-            Đang tải dữ liệu khách sạn & sơ đồ phòng...
-          </h2>
-        </div>
+      <div className="min-h-[450px] flex items-center justify-center">
+        <LoadingState message="Đang tải danh sách khách sạn và sơ đồ phòng..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[450px] flex items-center justify-center">
+        <ErrorState
+          title="Lỗi nạp danh sách khách sạn"
+          message={error}
+          onRetry={fetchHotels}
+        />
       </div>
     );
   }
 
   // Extract room cards format if needed
   const roomsForCards = selectedHotel?.floors
-    ? selectedHotel.floors.flatMap(f => f.rooms)
+    ? selectedHotel.floors.flatMap((f) => f.rooms)
     : selectedHotel?.rooms || [];
 
   return (
@@ -78,13 +84,13 @@ export default function HomeDetail() {
       {!selectedHotel && (
         <>
           {/* Banner Hero */}
-          <div className="relative rounded-3xl overflow-hidden mb-10 bg-gradient-to-r from-slate-900 via-slate-800 to-red-950 p-8 md:p-12 text-white shadow-2xl border border-slate-800">
+          <div className="relative rounded-3xl overflow-hidden mb-10 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-8 md:p-12 text-white shadow-2xl border border-slate-800">
             <div className="relative z-10 max-w-2xl">
-              <span className="bg-red-500/20 text-red-400 text-xs font-bold uppercase tracking-widest px-3.5 py-1.5 rounded-full border border-red-500/30">
+              <span className="bg-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-widest px-3.5 py-1.5 rounded-full border border-indigo-500/30">
                 ⭐ Đặt Phòng Thông Minh Cinema Style
               </span>
               <h1 className="text-3xl md:text-5xl font-black tracking-tight mt-4 mb-3">
-                Đặt Khách Sạn & Chọn Phòng <span className="text-red-500">Trực Quan 3D</span>
+                Đặt Khách Sạn & Chọn Phòng <span className="text-indigo-400">Trực Quan 3D</span>
               </h1>
               <p className="text-slate-300 text-sm md:text-base leading-relaxed">
                 Trải nghiệm giao diện sơ đồ chọn phòng tương tự như chọn ghế xem phim. Trực quan - Nhanh chóng - Đổi màu đỏ tức thì khi nhấp chọn!
@@ -94,11 +100,11 @@ export default function HomeDetail() {
 
           <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-extrabold text-slate-900 border-l-4 border-red-500 pl-3">
+              <h2 className="text-2xl font-extrabold text-slate-900 border-l-4 border-indigo-600 pl-3">
                 Danh Sách Khách Sạn Nổi Bật
               </h2>
               <p className="text-slate-500 text-sm mt-1">
-                Chọn một khách sạn bên dưới để trải nghiệm sơ đồ chọn phòng rạp chiếu phim màu đỏ.
+                Chọn một khách sạn bên dưới để trải nghiệm sơ đồ chọn phòng trực quan.
               </p>
             </div>
 
@@ -110,15 +116,31 @@ export default function HomeDetail() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {sortedHotels.map((hotel) => (
-              <HotelCard
-                key={hotel.id}
-                hotel={hotel}
-                onClick={setSelectedHotel}
-              />
-            ))}
-          </div>
+          {sortedHotels.length === 0 ? (
+            <EmptyState
+              icon="🏨"
+              title="Chưa có khách sạn nào trong hệ thống"
+              description="Hiện tại chưa có khách sạn nào được kích hoạt hoặc hệ thống đang bảo trì dữ liệu."
+              action={
+                <button
+                  onClick={fetchHotels}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow"
+                >
+                  Tải lại
+                </button>
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {sortedHotels.map((hotel) => (
+                <HotelCard
+                  key={hotel.id}
+                  hotel={hotel}
+                  onClick={setSelectedHotel}
+                />
+              ))}
+            </div>
+          )}
         </>
       )}
 
@@ -129,7 +151,7 @@ export default function HomeDetail() {
           <div className="mb-6 flex items-center justify-between">
             <button
               onClick={() => setSelectedHotel(null)}
-              className="flex items-center gap-2 text-sm font-bold text-red-600 hover:text-red-700 bg-red-50 px-4 py-2 rounded-xl transition"
+              className="flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-4 py-2 rounded-xl transition"
             >
               ← Quay lại danh sách Khách Sạn
             </button>
@@ -138,76 +160,85 @@ export default function HomeDetail() {
             <div className="flex bg-slate-200 p-1 rounded-xl text-xs font-bold">
               <button
                 onClick={() => setViewMode("grid")}
-                aria-label="Sơ đồ rạp chiếu phim (Giao diện Cinema Grid)"
-                className={`px-3 py-1.5 rounded-lg transition ${viewMode === "grid" ? "bg-red-600 text-white shadow-md" : "text-slate-700 hover:text-slate-900"}`}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  viewMode === "grid"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
               >
-                🎬 Sơ Đồ Cinema (Grid)
+                🎬 Sơ Đồ Rạp Phim (Khuyên Dùng)
               </button>
               <button
                 onClick={() => setViewMode("cards")}
-                aria-label="Danh sách thẻ phòng truyền thống"
-                className={`px-3 py-1.5 rounded-lg transition ${viewMode === "cards" ? "bg-red-600 text-white shadow-md" : "text-slate-700 hover:text-slate-900"}`}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  viewMode === "cards"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
               >
-                📋 Thẻ Phòng (List)
+                📋 Dạng Thẻ Chi Tiết
               </button>
             </div>
           </div>
 
-          {/* Selected Hotel Header Info */}
-          <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-200 mb-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
-            <img
-              src={selectedHotel.image}
-              alt={selectedHotel.name}
-              className="w-full md:w-72 h-48 rounded-xl object-cover shadow border border-slate-200"
-            />
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="bg-amber-100 text-amber-800 text-xs font-extrabold px-2.5 py-1 rounded-md">
-                  ⭐ {selectedHotel.rating || 4.8} / 5.0
+          {/* Hotel Summary Header */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-black text-slate-900">
+                  {selectedHotel.name}
+                </h1>
+                <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-200">
+                  ★ {selectedHotel.rating || "5.0"}
                 </span>
-                <span className="text-slate-400 text-xs font-semibold">| Khách sạn cao cấp</span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mt-2">
-                {selectedHotel.name}
-              </h1>
-              <p className="text-slate-500 text-sm mt-1 flex items-center gap-1">
-                📍 {selectedHotel.location}
+              <p className="text-slate-500 text-sm mt-1">
+                📍 {selectedHotel.location || selectedHotel.address || "Việt Nam"}
               </p>
-              <p className="text-slate-600 text-sm mt-3 leading-relaxed">
-                {selectedHotel.description}
-              </p>
+            </div>
 
-              {/* Amenities */}
-              {selectedHotel.amenities && (
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {selectedHotel.amenities.map((item, idx) => (
-                    <span key={idx} className="bg-slate-100 text-slate-700 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200">
-                      ✓ {item}
-                    </span>
-                  ))}
-                </div>
-              )}
+            <div className="text-right">
+              <span className="text-xs text-slate-400 block font-medium">Giá tham khảo từ</span>
+              <span className="text-xl font-extrabold text-indigo-600">
+                {selectedHotel.priceFrom ? Number(selectedHotel.priceFrom).toLocaleString("vi-VN") : "750.000"} đ/đêm
+              </span>
             </div>
           </div>
 
-          {/* Dynamic Content View */}
+          {/* Main Room Selector */}
           {viewMode === "grid" ? (
             <RoomGridSelector
               hotel={selectedHotel}
-              onBookingSuccess={(updatedHotel) => {
-                if (updatedHotel) setSelectedHotel(updatedHotel);
-                fetchHotels();
-              }}
+              onBack={() => setSelectedHotel(null)}
             />
           ) : (
-
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-4">Danh Sách Các Loại Phòng</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {roomsForCards.map((room) => (
-                  <RoomCard key={room.id} room={room} />
-                ))}
+            <div className="space-y-6">
+              <div className="border-b border-slate-200 pb-3">
+                <h3 className="text-lg font-bold text-slate-800">
+                  Danh Sách Phòng Khách Sạn
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Lựa chọn phòng đơn, phòng đôi hoặc suite cao cấp
+                </p>
               </div>
+
+              {roomsForCards.length === 0 ? (
+                <EmptyState
+                  icon="🚪"
+                  title="Không có phòng nào"
+                  description="Khách sạn này hiện chưa có dữ liệu phòng được cập nhật."
+                />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {roomsForCards.map((room) => (
+                    <RoomCard
+                      key={room.id}
+                      room={room}
+                      hotel={selectedHotel}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

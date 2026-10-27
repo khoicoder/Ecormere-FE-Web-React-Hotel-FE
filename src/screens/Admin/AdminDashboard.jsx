@@ -183,7 +183,9 @@ export default function AdminDashboard() {
         subtitle={
           isSuperAdmin
             ? "Tổng hợp toàn diện chỉ số kinh doanh, tài khoản và đơn đặt phòng toàn quốc."
-            : `Giám sát hoạt động kinh doanh, khách hàng và đặt phòng tại cơ sở ID #${stats?.hotelId || 1}.`
+            : stats?.hotelName
+            ? `Giám sát hoạt động kinh doanh, khách hàng và đặt phòng tại ${stats.hotelName} (Mã cơ sở: #${stats.hotelId}).`
+            : "Tài khoản của bạn hiện chưa được phân công quản lý khách sạn nào."
         }
         badge={isSuperAdmin ? "Super Admin" : "Hotel Admin"}
         badgeVariant={isSuperAdmin ? "warning" : "info"}
@@ -239,9 +241,9 @@ export default function AdminDashboard() {
         />
         <StatCard
           title={isSuperAdmin ? "Chuỗi Khách Sạn" : "Cơ Sở Hoạt Động"}
-          value={stats?.totalHotels || 1}
+          value={stats?.totalHotels ?? 0}
           icon="🏨"
-          trend={isSuperAdmin ? "Hệ thống toàn quốc" : stats?.hotelName || "Chi nhánh hoạt động"}
+          trend={isSuperAdmin ? "Hệ thống toàn quốc" : stats?.hotelName || "Chưa gán khách sạn"}
           trendType="neutral"
         />
       </div>

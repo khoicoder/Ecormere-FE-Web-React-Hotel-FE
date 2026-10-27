@@ -3,7 +3,7 @@ import { lazy } from "react";
 export const Home = lazy(() => import("../screens/Home/Home.Screen.jsx"));
 export const Login = lazy(() => import("../screens/Login/Login.Screen.jsx"));
 export const Register = lazy(() => import("../screens/Register/Register.Screen.jsx"));
-export const Profile = lazy(() => import("../screens/Profile/Profile.Srceen.jsx"));
+export const Profile = lazy(() => import("../screens/Profile/Profile.Screen.jsx"));
 export const AdminDashboard = lazy(() => import("../screens/Admin/AdminDashboard.jsx"));
 export const HotelManagement = lazy(() => import("../screens/Admin/HotelManagement.jsx"));
 export const EquipmentManagement = lazy(() => import("../screens/Admin/EquipmentManagement.jsx"));
