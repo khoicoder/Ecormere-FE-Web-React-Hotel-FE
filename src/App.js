@@ -1,41 +1,149 @@
-import Loading from "./components/common/Loading";
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Header from "./components/layout/Header.jsx";
-import Footer from "./components/layout/Footer.jsx";
-import { Home  } from "./navigation/LazyNavigator.js";
-import RegisterScreen from "./screens/Register/Register.Screen.jsx";
-import LoginScreen from "./screens/Login/Login.Screen.jsx";
-import ProfileScreen from "./screens/Profile/Profile.Srceen.jsx";
-function App() {
+import Loading from "./components/common/Loading";
+import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
+import PublicLayout from "./components/layout/PublicLayout.jsx";
+import AdminLayout from "./components/layout/AdminLayout.jsx";
+import {
+  Home,
+  Login,
+  Register,
+  Profile,
+  AdminDashboard,
+  HotelManagement,
+  EquipmentManagement,
+  MaintenanceManagement,
+  ReceptionistDashboard,
+  ReceptionistManagement,
+  HotelAdminManagement,
+} from "./navigation/LazyNavigator.js";
 
-  console.log("App component đã render....");
+// Helper for Admin/Staff Management routes
+function AdminRoute({ children, allowedRoles, adminOnly, receptionistOnly }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <BrowserRouter>
-        
-        <Header />
-
-        <Suspense fallback={<Loading />}>
-    {/*Sử dụng các component được lazy load ở đây --> */}
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<LoginScreen />} />
-              <Route path="/register" element={<RegisterScreen />} />
-              <Route path="*" element={<div className="text-center text-2xl mt-10">404 - Page Not Found</div>} />
-              <Route path="/dashboard" element={<div className="text-center text-2xl mt-10">Dashboard</div>} />
-              <Route path="/profile" element={<ProfileScreen />} />
-            </Routes>
-          </main>
-
-        </Suspense>
-
-        <Footer />
-
-      </BrowserRouter>
-    </div>
+    <ProtectedRoute
+      allowedRoles={allowedRoles}
+      adminOnly={adminOnly}
+      receptionistOnly={receptionistOnly}
+    >
+      <AdminLayout>{children}</AdminLayout>
+    </ProtectedRoute>
   );
-
 }
+
+// Helper for Public / Customer routes
+function PublicRoute({ children, protectedUser = false }) {
+  const content = <PublicLayout>{children}</PublicLayout>;
+  if (protectedUser) {
+    return <ProtectedRoute>{content}</ProtectedRoute>;
+  }
+  return content;
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {/* Public / Customer Routes */}
+          <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/profile" element={<PublicRoute protectedUser={true}><Profile /></PublicRoute>} />
+
+          {/* Operational / Receptionist Routes */}
+          <Route
+            path="/receptionist/dashboard"
+            element={
+              <AdminRoute receptionistOnly={true}>
+                <ReceptionistDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/receptionist"
+            element={
+              <AdminRoute receptionistOnly={true}>
+                <ReceptionistDashboard />
+              </AdminRoute>
+            }
+          />
+
+          {/* Management / Admin Routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminRoute adminOnly={true}>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/hotels"
+            element={
+              <AdminRoute adminOnly={true}>
+                <HotelManagement />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/equipment"
+            element={
+              <AdminRoute adminOnly={true}>
+                <EquipmentManagement />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/maintenance"
+            element={
+              <AdminRoute adminOnly={true}>
+                <MaintenanceManagement />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/receptionists"
+            element={
+              <AdminRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+                <ReceptionistManagement />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/hotel-admins"
+            element={
+              <AdminRoute allowedRoles={["SUPER_ADMIN"]}>
+                <HotelAdminManagement />
+              </AdminRoute>
+            }
+          />
+
+          {/* Fallback 404 */}
+          <Route
+            path="*"
+            element={
+              <PublicRoute>
+                <div className="min-h-[500px] flex flex-col items-center justify-center p-6 text-center">
+                  <span className="text-6xl mb-2">🏨</span>
+                  <h2 className="text-4xl font-black text-slate-900 tracking-tight">404</h2>
+                  <p className="text-slate-500 text-sm mt-2 max-w-sm">
+                    Trang bạn tìm kiếm không tồn tại hoặc đã được chuyển sang địa chỉ khác.
+                  </p>
+                  <a
+                    href="/"
+                    className="mt-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition"
+                  >
+                    Trở về Trang Chủ
+                  </a>
+                </div>
+              </PublicRoute>
+            }
+          />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
+
 export default App;

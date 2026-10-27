@@ -1,392 +1,395 @@
 import { useState, useEffect } from "react";
 import { updateUserProfile, getUserProfile } from "../../services/userService.js";
-import ProfileField from "./ProfileField.jsx";
-export default function ProfileForm() {
-    
-    const [profileData, setProfileData] = useState(null);
-    const [message, setMessage] = useState("");
-    const [loading, setLoading] = useState(false);
-    const[error,setError] = useState("");
-    const [editMode, setEditMode] = useState(
-        {
-        username: false,
-        email: false,
-        avatarUrl: false,
-        address: false,
-        phone: false,
-        password: false,
+import { Card, CardHeader, CardBody } from "../ui/Card.jsx";
+import Button, { Input } from "../ui/FormControls.jsx";
+import StatusBadge from "../ui/StatusBadge.jsx";
+import { LoadingState, Alert, EmptyState } from "../ui/FeedbackStates.jsx";
 
-        });
-    
-    
-    const [formData, setFormData] = useState({
+export default function ProfileForm() {
+  const [profileData, setProfileData] = useState(null);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
     username: "",
     email: "",
     phone: "",
     avatarUrl: "",
     address: "",
-    currentPassword: "",
+  });
+
+  useEffect(() => {
+    fetchData();
+
+    const handleSync = () => {
+      fetchData();
+    };
+
+    window.addEventListener("booking-updated", handleSync);
+    return () => window.removeEventListener("booking-updated", handleSync);
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const data = await getUserProfile();
+      if (data) {
+        setProfileData(data);
+        setFormData({
+          username: data.username || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          avatarUrl: data.avatarUrl || "",
+          address: data.address || "",
+        });
+      }
+    } catch (error) {
+      setMessage("❌ Chưa thể tải dữ liệu hồ sơ từ máy chủ.");
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    try {
+      await updateUserProfile(formData);
+      setMessage("✅ Cập nhật hồ sơ cá nhân thành công!");
+      await fetchData();
+    } catch (error) {
+      setMessage("❌ Cập nhật thất bại. Vui lòng kiểm tra lại thông tin.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!profileData) {
+    return <LoadingState message="Đang tải thông tin hồ sơ người dùng..." />;
+  }
+
+  return (
+    <div className="py-6 max-w-6xl mx-auto px-4 space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+          Hồ Sơ Cá Nhân & Quản Lý Đặt Phòng
+        </h1>
+        <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">
+          Quản lý thông tin tài khoản, danh sách phòng đã đặt và bảo mật thông tin
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT CARD: User Info */}
+        <div className="lg:col-span-1">
+          <Card className="p-6 sticky top-24">
+            <div className="flex flex-col items-center text-center">
+              <img
+                src={
+                  profileData.avatarUrl ||
+                  profileData.avatar ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    profileData.username || "User"
+                  )}&background=4f46e5&color=fff`
+                }
+                alt="Avatar"
+                className="w-24 h-24 rounded-full object-cover border-4 border-slate-100 dark:border-slate-800 shadow"
+              />
+
+              <h2 className="mt-3.5 text-lg font-bold text-slate-900 dark:text-white">
+                {profileData.fullName || profileData.username}
+              </h2>
+
+              <p className="text-xs text-slate-400 mt-0.5">
+                @{profileData.username} • {profileData.email || "user@example.com"}
+              </p>
+
+              <div className="mt-3">
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold border border-indigo-200 dark:border-indigo-800">
+                  {profileData.role || "USER"} MEMBER
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-2.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Số điện thoại:</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {profileData.phone || "0987 654 321"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Địa chỉ:</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {profileData.address || "TP. Hồ Chí Minh"}
+                </span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* RIGHT CONTENT: Form & Bookings */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Form update */}
+          <Card>
+            <CardHeader
+              title="Cập Nhật Thông Tin Tài Khoản"
+              subtitle="Thông tin cá nhân dùng để liên hệ nhận phòng"
+            />
+            <CardBody>
+              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Tên đăng nhập
+                  </label>
+                  <Input
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Email liên hệ
+                  </label>
+                  <Input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Số điện thoại
+                  </label>
+                  <Input
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {message && (
+                  <Alert
+                    type={message.startsWith("✅") ? "success" : "error"}
+                    message={message}
+                    onClose={() => setMessage("")}
+                  />
+                )}
+
+                <div className="text-right pt-2">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={loading}
+                  >
+                    {loading ? "Đang lưu..." : "Lưu Thông Tin"}
+                  </Button>
+                </div>
+              </form>
+            </CardBody>
+          </Card>
+
+          {/* Bookings History Section */}
+          <Card>
+            <CardHeader
+              title="Lịch Sử Đặt Phòng Của Bạn"
+              subtitle={`Tổng số ${profileData.bookings?.length || 0} đơn đặt phòng`}
+            />
+            <CardBody>
+              <div className="space-y-3">
+                {(profileData.bookings || []).length === 0 ? (
+                  <EmptyState
+                    icon="📋"
+                    title="Chưa có đơn đặt phòng nào"
+                    description="Hãy chọn khách sạn trên trang chủ để đặt phòng."
+                  />
+                ) : (
+                  profileData.bookings.map((booking, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="bg-slate-800 text-white dark:bg-slate-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                            #{booking.id}
+                          </span>
+                          <h4 className="font-bold text-slate-900 dark:text-white text-sm">
+                            {booking.hotelName}
+                          </h4>
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1">
+                          🚪 Phòng:{" "}
+                          <strong className="text-indigo-600 dark:text-indigo-400 font-bold">
+                            {booking.roomNumber ||
+                              (booking.roomName
+                                ? booking.roomName.match(/\d+/)
+                                  ? booking.roomName.match(/\d+/)[0]
+                                  : booking.roomId
+                                : booking.roomId)}
+                          </strong>{" "}
+                          ({booking.roomType || "Standard"}) • 📅 {booking.checkInDate || booking.checkIn || "Hôm nay"} ➔{" "}
+                          {booking.checkOutDate || booking.checkOut || "Ngày mai"}
+                        </p>
+                      </div>
+
+                      <div className="text-right w-full md:w-auto flex md:flex-col items-center md:items-end justify-between gap-2">
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">
+                          {typeof booking.totalPrice === "number"
+                            ? `${booking.totalPrice.toLocaleString("vi-VN")} đ`
+                            : booking.total || "1.700.000 đ"}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <StatusBadge status={booking.status || "CONFIRMED"} type="booking" />
+                          {booking.status === "CONFIRMED" && (
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              onClick={async () => {
+                                if (window.confirm("Bạn có chắc muốn hủy đơn đặt phòng này?")) {
+                                  const { cancelBooking } = await import("../../services/bookingService");
+                                  await cancelBooking(booking.id);
+                                  await fetchData();
+                                }
+                              }}
+                            >
+                              Hủy Đặt
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Change Password Section */}
+          <Card>
+            <CardHeader
+              title="Đổi Mật Khẩu"
+              subtitle="Nên dùng mật khẩu có độ dài tối thiểu 6 ký tự kết hợp chữ và số"
+            />
+            <CardBody>
+              <ChangePasswordForm />
+            </CardBody>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChangePasswordForm() {
+  const [passData, setPassData] = useState({
+    oldPassword: "",
     newPassword: "",
-    });
-    
+    confirmPassword: "",
+  });
+  const [passMsg, setPassMsg] = useState("");
+  const [passErr, setPassErr] = useState("");
+  const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+  const handlePassChange = async (e) => {
+    e.preventDefault();
+    setPassMsg("");
+    setPassErr("");
 
-    const fetchData = async () => {
-        try {
-            const data = await getUserProfile();
-            if(data){
-                console.log("Dữ liệu hồ sơ người dùng:", data);
-                setProfileData(data);
-
-            }
-            
-            setFormData(prev => ({
-                ...prev,
-                username: data.username,
-                email: data.email || "",
-                phone: data.phone || "",
-                avatarUrl: data.avatarUrl || "",
-                address: data.address || "",
-                
-            }));
-        } catch (error) {
-            console.error("Error fetching user profile:", error);
-            setMessage("❌ Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-        }
-    };
-
-    const handleChange = (e) => {
-        
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-    const toggleEdit = (field) => {
-        setEditMode(prev => ({
-            ...prev,
-            [field]: !prev[field]
-        }));
+    if (!passData.oldPassword || !passData.newPassword || !passData.confirmPassword) {
+      setPassErr("Vui lòng điền đầy đủ mật khẩu cũ và mật khẩu mới.");
+      return;
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setMessage("");
-        setError("");
-        const payload = {};
-            if(editMode.username) payload.username = formData.username;
-            if(editMode.email) payload.email = formData.email;
-            if(editMode.phone) payload.phone = formData.phone;
-            if(editMode.avatarUrl) payload.avatarUrl = formData.avatarUrl;
-            if(editMode.address) payload.address = formData.address;
+    if (passData.newPassword !== passData.confirmPassword) {
+      setPassErr("Mật khẩu mới và xác nhận mật khẩu không khớp.");
+      return;
+    }
 
-            console.log("EDIT MODE:", editMode)
-            console.log("PAYLOAD UPDATE PROFILE:", payload);
-            console.log("FORM DATA:", formData);
+    if (passData.newPassword.length < 6) {
+      setPassErr("Mật khẩu mới phải có ít nhất 6 ký tự.");
+      return;
+    }
 
+    try {
+      setSaving(true);
+      const { changePassword } = await import("../../services/userService.js");
+      await changePassword(passData);
+      setPassMsg("Đổi mật khẩu thành công!");
+      setPassData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+      setTimeout(() => setPassMsg(""), 4000);
+    } catch (err) {
+      setPassErr("Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu cũ.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
-        try {
-            const data = await updateUserProfile(payload);
-            console.log("RESPONSE UPDATE PROFILE:", data);
-            if (data.accessToken) {
-            localStorage.setItem("accessToken", data.accessToken);
-        }
+  return (
+    <form onSubmit={handlePassChange} className="space-y-4 text-xs">
+      <div>
+        <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          Mật khẩu hiện tại *
+        </label>
+        <Input
+          type="password"
+          placeholder="Nhập mật khẩu hiện tại"
+          value={passData.oldPassword}
+          onChange={(e) => setPassData({ ...passData, oldPassword: e.target.value })}
+        />
+      </div>
 
-        if (data.refreshToken) {
-            localStorage.setItem("refreshToken", data.refreshToken);
-        }
-
-        if (data.username) {
-            localStorage.setItem("username", data.username);
-        }
-
-        if (data.role) {
-            localStorage.setItem("role", data.role);
-        }
-        if(data.profileResponse.avatarUrl) {
-            localStorage.setItem("avatarUrl", data.profileResponse.avatarUrl);
-        }
-
-            
-            setMessage("✅ Cập nhật hồ sơ thành công!");
-            await fetchData();
-            setEditMode({
-                username: false,
-                email: false,
-                avatarUrl: false,
-                address: false,
-                phone: false,
-    
-            });
-        } catch (error) {
-            setMessage("❌ Cập nhật thất bại. Vui lòng thử lại.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (!profileData) return (
-        <div className="flex justify-center items-center h-screen italic text-gray-500">
-            Đang tải dữ liệu người dùng...
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Mật khẩu mới *
+          </label>
+          <Input
+            type="password"
+            placeholder="Tối thiểu 6 ký tự"
+            value={passData.newPassword}
+            onChange={(e) => setPassData({ ...passData, newPassword: e.target.value })}
+          />
         </div>
-    );
 
-    console.log("Dữ liệu hồ sơ người dùng:", profileData);
-    localStorage.getItem("accessToken")
-
-    return (
-    <div className="min-h-screen bg-slate-100 py-10 px-4">
-        <div className="max-w-5xl mx-auto">
-            {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900">
-                    Hồ sơ cá nhân
-                </h1>
-                <p className="text-slate-500 mt-1">
-                    Quản lý thông tin tài khoản, ảnh đại diện và bảo mật.
-                </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* LEFT CARD */}
-                <div className="lg:col-span-1">
-                    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sticky top-6">
-                        <div className="flex flex-col items-center text-center">
-                            <div className="relative">
-                                <img
-                                    src={
-                                        profileData.avatarUrl ||
-                                        "https://ui-avatars.com/api/?name=" +
-                                            encodeURIComponent(profileData.username || "User")
-                                    }
-                                    alt="Avatar"
-                                    className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg ring-4 ring-blue-100"
-                                />
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setEditMode({
-                                            ...editMode,
-                                            avatarUrl: !editMode.avatarUrl,
-                                        })
-                                    }
-                                    className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-700 transition flex items-center justify-center"
-                                    title="Đổi ảnh"
-                                >
-                                    ✎
-                                </button>
-                            </div>
-
-                            <h2 className="mt-5 text-xl font-bold text-slate-900">
-                                {profileData.username}
-                            </h2>
-
-                            <p className="text-sm text-slate-500 mt-1">
-                                {profileData.email || "Chưa cập nhật email"}
-                            </p>
-
-                            <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium">
-                                {profileData.role || "USER"}
-                            </div>
-                        </div>
-
-                        <div className="mt-6 border-t border-slate-100 pt-5 space-y-3">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Số điện thoại</span>
-                                <span className="font-medium text-slate-800">
-                                    {profileData.phone || "Chưa có"}
-                                </span>
-                            </div>
-
-                            <div className="flex justify-between text-sm gap-4">
-                                <span className="text-slate-500">Địa chỉ</span>
-                                <span className="font-medium text-slate-800 text-right">
-                                    {profileData.address || "Chưa có"}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* RIGHT FORM */}
-                <div className="lg:col-span-2">
-                    <form
-                        onSubmit={handleSubmit}
-                        className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden"
-                    >
-                        <div className="p-6 border-b border-slate-100">
-                            <h3 className="text-xl font-bold text-slate-900">
-                                Thông tin tài khoản
-                            </h3>
-                            <p className="text-sm text-slate-500 mt-1">
-                                Bấm “Chỉnh sửa” ở từng mục nếu bạn muốn thay đổi.
-                            </p>
-                        </div>
-
-                        <div className="p-6 space-y-5">
-                            {/* Username */}
-                            <ProfileField
-                                label="Tên người dùng"
-                                value={profileData.username}
-                                editing={editMode.username}
-                                onToggle={() =>
-                                    setEditMode({
-                                        ...editMode,
-                                        username: !editMode.username,
-                                    })
-                                }
-                            >
-                                <input
-                                    type="text"
-                                    name="username"
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition"
-                                    placeholder="Nhập tên mới"
-                                />
-                            </ProfileField>
-
-                            {/* Email */}
-                            <ProfileField
-                                label="Email"
-                                value={profileData.email || "Chưa cập nhật email"}
-                                editing={editMode.email}
-                                onToggle={() =>
-                                    setEditMode({
-                                        ...editMode,
-                                        email: !editMode.email,
-                                    })
-                                }
-                            >
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition"
-                                    placeholder="example@gmail.com"
-                                />
-                            </ProfileField>
-
-                            {/* Phone */}
-                            <ProfileField
-                                label="Số điện thoại"
-                                value={profileData.phone || "Chưa cập nhật số điện thoại"}
-                                editing={editMode.phone}
-                                onToggle={() =>
-                                    setEditMode({
-                                        ...editMode,
-                                        phone: !editMode.phone,
-                                    })
-                                }
-                            >
-                                <input
-                                    type="text"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition"
-                                    placeholder="09xxx..."
-                                />
-                            </ProfileField>
-
-                            {/* Address */}
-                            <ProfileField
-                                label="Địa chỉ"
-                                value={profileData.address || "Chưa cập nhật địa chỉ"}
-                                editing={editMode.address}
-                                onToggle={() =>
-                                    setEditMode({
-                                        ...editMode,
-                                        address: !editMode.address,
-                                    })
-                                }
-                            >
-                                <input
-                                    type="text"
-                                    name="address"
-                                    value={formData.address}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition"
-                                    placeholder="Nhập địa chỉ"
-                                />
-                            </ProfileField>
-
-                            {/* Avatar URL */}
-                            {editMode.avatarUrl && (
-                                <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div>
-                                            <h4 className="font-semibold text-slate-900">
-                                                Ảnh đại diện
-                                            </h4>
-                                            <p className="text-sm text-slate-500">
-                                                Dán link ảnh mới của bạn.
-                                            </p>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setEditMode({
-                                                    ...editMode,
-                                                    avatarUrl: false,
-                                                })
-                                            }
-                                            className="text-sm font-medium text-slate-500 hover:text-red-500"
-                                        >
-                                            Hủy
-                                        </button>
-                                    </div>
-
-                                    <input
-                                        type="text"
-                                        name="avatarUrl"
-                                        value={formData.avatarUrl}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition bg-white"
-                                        placeholder="https://..."
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-    
-                        {/* Footer */}
-                        <div className="px-6 py-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                            <p className="text-sm text-slate-500">
-                                Chỉ các mục đang bật chỉnh sửa mới được gửi lên server.
-                            </p>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className={`px-6 py-3 rounded-xl font-bold text-white transition shadow-sm ${
-                                    loading
-                                        ? "bg-slate-400 cursor-not-allowed"
-                                        : "bg-blue-600 hover:bg-blue-700 active:scale-[0.98]"
-                                }`}
-                            >
-                                {loading ? "Đang lưu..." : "Lưu thay đổi"}
-                            </button>
-                        </div>
-                    </form>
-
-                    {message && (
-                        <div
-                            className={`mt-5 p-4 rounded-2xl text-center font-medium border ${
-                                message.includes("thành công")
-                                    ? "bg-green-50 text-green-700 border-green-100"
-                                    : "bg-red-50 text-red-700 border-red-100"
-                            }`}
-                        >
-                            {message}
-                        </div>
-                    )}
-                </div>
-            </div>
+        <div>
+          <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Xác nhận mật khẩu mới *
+          </label>
+          <Input
+            type="password"
+            placeholder="Nhập lại mật khẩu mới"
+            value={passData.confirmPassword}
+            onChange={(e) => setPassData({ ...passData, confirmPassword: e.target.value })}
+          />
         </div>
-    </div>
-)}
+      </div>
+
+      {passErr && (
+        <Alert type="error" message={passErr} onClose={() => setPassErr("")} />
+      )}
+
+      {passMsg && (
+        <Alert type="success" message={passMsg} onClose={() => setPassMsg("")} />
+      )}
+
+      <div className="text-right pt-2">
+        <Button
+          type="submit"
+          variant="secondary"
+          disabled={saving}
+        >
+          {saving ? "Đang xử lý..." : "Cập Nhật Mật Khẩu"}
+        </Button>
+      </div>
+    </form>
+  );
+}
