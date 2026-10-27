@@ -36,8 +36,17 @@ export default function HomeDetail() {
       setSelectedHotel((prev) => (prev ? syncHotelWithBookings(prev) : null));
     };
 
+    const handleResetSelection = () => {
+      setSelectedHotel(null);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
     window.addEventListener("booking-updated", handleSync);
-    return () => window.removeEventListener("booking-updated", handleSync);
+    window.addEventListener("reset-hotel-selection", handleResetSelection);
+    return () => {
+      window.removeEventListener("booking-updated", handleSync);
+      window.removeEventListener("reset-hotel-selection", handleResetSelection);
+    };
   }, []);
 
 

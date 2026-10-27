@@ -48,8 +48,16 @@ export default function RoomGridSelector({ hotel, onBookingSuccess }) {
     const handleUpdate = () => {
       refreshHotelState();
     };
+    const handleReset = () => {
+      setShowModal(false);
+      setSelectedRoomIds([]);
+    };
     window.addEventListener("booking-updated", handleUpdate);
-    return () => window.removeEventListener("booking-updated", handleUpdate);
+    window.addEventListener("reset-hotel-selection", handleReset);
+    return () => {
+      window.removeEventListener("booking-updated", handleUpdate);
+      window.removeEventListener("reset-hotel-selection", handleReset);
+    };
   }, [hotel]);
 
   // Derive structured floors dynamically from real database rooms

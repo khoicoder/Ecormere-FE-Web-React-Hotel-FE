@@ -25,6 +25,10 @@ export default function Header() {
     };
   }, []);
 
+  const handleLogoClick = () => {
+    window.dispatchEvent(new Event("reset-hotel-selection"));
+  };
+
   const handleLogout = async () => {
     await logoutAPI();
     setToken(null);
@@ -38,7 +42,7 @@ export default function Header() {
     <header className="bg-slate-900 border-b border-slate-800 text-white px-6 py-3.5 flex items-center justify-between sticky top-0 z-50 shadow-xl backdrop-blur-lg bg-opacity-95">
       {/* Brand Logo */}
       <div className="flex items-center gap-3">
-        <Link to="/" className="flex items-center gap-2 group">
+        <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2 group">
           <div className="w-9 h-9 bg-gradient-to-tr from-red-600 to-rose-500 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-red-600/40 group-hover:scale-105 transition duration-300">
             H
           </div>
@@ -54,7 +58,7 @@ export default function Header() {
 
       {/* Main Navigation */}
       <nav className="hidden md:flex items-center gap-7 text-sm font-semibold">
-        <Link to="/" className="text-slate-300 hover:text-red-400 transition flex items-center gap-1.5">
+        <Link to="/" onClick={handleLogoClick} className="text-slate-300 hover:text-red-400 transition flex items-center gap-1.5">
           <span>🏠 Khách Sạn & Chọn Phòng</span>
         </Link>
         <Link to="/profile" className="text-slate-300 hover:text-red-400 transition flex items-center gap-1.5">
