@@ -1,9 +1,9 @@
 import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Header from "./components/layout/Header.jsx";
-import Footer from "./components/layout/Footer.jsx";
 import Loading from "./components/common/Loading";
 import ProtectedRoute from "./components/common/ProtectedRoute.jsx";
+import PublicLayout from "./components/layout/PublicLayout.jsx";
+import AdminLayout from "./components/layout/AdminLayout.jsx";
 import {
   Home,
   Login,
@@ -15,121 +15,134 @@ import {
   MaintenanceManagement,
   ReceptionistDashboard,
   ReceptionistManagement,
-  HotelAdminManagement
+  HotelAdminManagement,
 } from "./navigation/LazyNavigator.js";
+
+// Helper for Admin/Staff Management routes
+function AdminRoute({ children, allowedRoles, adminOnly, receptionistOnly }) {
+  return (
+    <ProtectedRoute
+      allowedRoles={allowedRoles}
+      adminOnly={adminOnly}
+      receptionistOnly={receptionistOnly}
+    >
+      <AdminLayout>{children}</AdminLayout>
+    </ProtectedRoute>
+  );
+}
+
+// Helper for Public / Customer routes
+function PublicRoute({ children, protectedUser = false }) {
+  const content = <PublicLayout>{children}</PublicLayout>;
+  if (protectedUser) {
+    return <ProtectedRoute>{content}</ProtectedRoute>;
+  }
+  return content;
+}
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-red-500 selection:text-white">
-      <BrowserRouter>
-        <Header />
+    <BrowserRouter>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {/* Public / Customer Routes */}
+          <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/profile" element={<PublicRoute protectedUser={true}><Profile /></PublicRoute>} />
 
-        <Suspense fallback={<Loading />}>
-          <main className="flex-1">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+          {/* Operational / Receptionist Routes */}
+          <Route
+            path="/receptionist/dashboard"
+            element={
+              <AdminRoute receptionistOnly={true}>
+                <ReceptionistDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/receptionist"
+            element={
+              <AdminRoute receptionistOnly={true}>
+                <ReceptionistDashboard />
+              </AdminRoute>
+            }
+          />
 
-              {/* Protected User Routes */}
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
+          {/* Management / Admin Routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminRoute adminOnly={true}>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/hotels"
+            element={
+              <AdminRoute adminOnly={true}>
+                <HotelManagement />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/equipment"
+            element={
+              <AdminRoute adminOnly={true}>
+                <EquipmentManagement />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/maintenance"
+            element={
+              <AdminRoute adminOnly={true}>
+                <MaintenanceManagement />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/receptionists"
+            element={
+              <AdminRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
+                <ReceptionistManagement />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/hotel-admins"
+            element={
+              <AdminRoute allowedRoles={["SUPER_ADMIN"]}>
+                <HotelAdminManagement />
+              </AdminRoute>
+            }
+          />
 
-              {/* Protected Receptionist Routes */}
-              <Route
-                path="/receptionist/dashboard"
-                element={
-                  <ProtectedRoute receptionistOnly={true}>
-                    <ReceptionistDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/receptionist"
-                element={
-                  <ProtectedRoute receptionistOnly={true}>
-                    <ReceptionistDashboard />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Protected Admin Routes */}
-              <Route
-                path="/admin/dashboard"
-                element={
-                  <ProtectedRoute adminOnly={true}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/hotels"
-                element={
-                  <ProtectedRoute adminOnly={true}>
-                    <HotelManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/equipment"
-                element={
-                  <ProtectedRoute adminOnly={true}>
-                    <EquipmentManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/maintenance"
-                element={
-                  <ProtectedRoute adminOnly={true}>
-                    <MaintenanceManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/receptionists"
-                element={
-                  <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
-                    <ReceptionistManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/hotel-admins"
-                element={
-                  <ProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
-                    <HotelAdminManagement />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Fallback 404 */}
-              <Route
-                path="*"
-                element={
-                  <div className="min-h-[400px] flex flex-col items-center justify-center p-6 text-center">
-                    <h2 className="text-4xl font-black text-slate-900">404</h2>
-                    <p className="text-slate-500 text-sm mt-2">Trang bạn tìm kiếm không tồn tại hoặc đã chuyển đổi địa chỉ.</p>
-                    <a href="/" className="mt-4 bg-red-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md">
-                      Trở về Trang Chủ
-                    </a>
-                  </div>
-                }
-              />
-            </Routes>
-          </main>
-        </Suspense>
-
-        <Footer />
-      </BrowserRouter>
-    </div>
+          {/* Fallback 404 */}
+          <Route
+            path="*"
+            element={
+              <PublicRoute>
+                <div className="min-h-[500px] flex flex-col items-center justify-center p-6 text-center">
+                  <span className="text-6xl mb-2">🏨</span>
+                  <h2 className="text-4xl font-black text-slate-900 tracking-tight">404</h2>
+                  <p className="text-slate-500 text-sm mt-2 max-w-sm">
+                    Trang bạn tìm kiếm không tồn tại hoặc đã được chuyển sang địa chỉ khác.
+                  </p>
+                  <a
+                    href="/"
+                    className="mt-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition"
+                  >
+                    Trở về Trang Chủ
+                  </a>
+                </div>
+              </PublicRoute>
+            }
+          />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
   );
 }
 

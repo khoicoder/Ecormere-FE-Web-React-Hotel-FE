@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { getAdminHotels, createHotel, deleteHotel } from "../../services/hotelService";
+import PageHeader from "../../components/ui/PageHeader";
+import { Card, CardHeader, CardBody } from "../../components/ui/Card";
+import Button, { Input, Select } from "../../components/ui/FormControls";
+import StatusBadge from "../../components/ui/StatusBadge";
+import Modal from "../../components/ui/Modal";
+import { LoadingState, EmptyState, Alert } from "../../components/ui/FeedbackStates";
 
 export default function HotelManagement() {
   const [hotels, setHotels] = useState([]);
@@ -81,7 +87,7 @@ export default function HotelManagement() {
     if (window.confirm("Bạn có chắc chắn muốn xóa khách sạn này?")) {
       try {
         await deleteHotel(id);
-        setHotels(hotels.filter(h => h.id !== id));
+        setHotels(hotels.filter((h) => h.id !== id));
         setMsg("🗑️ Đã xóa khách sạn thành công!");
       } catch (err) {
         setMsg("❌ Lỗi khi xóa: " + (err.response?.data?.message || err.message));
@@ -91,114 +97,110 @@ export default function HotelManagement() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-      {/* Top Banner / Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+    <div className="space-y-6">
+      {/* SaaS Page Header */}
+      <PageHeader
+        title="Quản Lý Khách Sạn & Sơ Đồ Phòng"
+        subtitle={
+          isSuperAdmin
+            ? "Quản trị toàn diện danh mục khách sạn, chi nhánh, thông số phòng và biểu giá toàn hệ thống"
+            : "Quản trị thông tin và cơ cấu phòng của khách sạn được giao phụ trách"
+        }
+        badge={isSuperAdmin ? "Super Admin" : "Hotel Admin"}
+        badgeVariant={isSuperAdmin ? "warning" : "info"}
+        actions={
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-black uppercase px-3 py-1 rounded-full border ${
-              isSuperAdmin
-                ? "bg-amber-100 text-amber-800 border-amber-200"
-                : "bg-blue-100 text-blue-800 border-blue-200"
-            }`}>
-              {isSuperAdmin ? "👑 SUPER ADMIN - TOÀN HỆ THỐNG" : "🏨 ADMIN THƯỜNG - CHỦ KHÁCH SẠN"}
-            </span>
-            <span className="text-xs text-slate-500 font-medium">
-              {isSuperAdmin ? "Quản lý tất cả khách sạn trong chuỗi" : "Quản lý riêng 1 khách sạn do bạn làm chủ"}
-            </span>
-          </div>
-
-          <h1 className="text-3xl font-black text-slate-900 mt-2">Quản Lý Khách Sạn (Hotels CRUD)</h1>
-          <p className="text-slate-500 text-xs mt-1">
-            {isSuperAdmin
-              ? "Quản trị toàn diện danh mục khách sạn, chi nhánh, thông số phòng và biểu giá hệ thống"
-              : "Quản trị thông tin và cơ cấu phòng của khách sạn do bạn làm chủ"}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchHotelList}
-            className="border border-slate-300 bg-white text-slate-700 text-xs font-bold px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition shadow-sm"
-          >
-            🔄 Tải Lại Real
-          </button>
-          {isSuperAdmin ? (
-            <button
-              onClick={() => setShowModal(true)}
-              className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-red-600/30 transition flex items-center gap-1.5"
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<span>🔄</span>}
+              onClick={fetchHotelList}
             >
-              <span>+</span> Thêm Khách Sạn Mới
-            </button>
-          ) : (
-            <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-xl">
-              Khách sạn được chỉ định: 1
-            </span>
-          )}
-        </div>
-      </div>
+              Làm Mới
+            </Button>
+            {isSuperAdmin && (
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<span>+</span>}
+                onClick={() => setShowModal(true)}
+              >
+                Thêm Khách Sạn
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       {msg && (
-        <div className="p-3 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200">
-          {msg}
-        </div>
+        <Alert
+          type="info"
+          message={msg}
+          onClose={() => setMsg("")}
+        />
       )}
 
       {/* Hotel Cards Grid */}
       {loading ? (
-        <div className="py-20 text-center text-slate-500 font-bold text-sm">
-          Đang tải danh sách khách sạn từ Databases Real...
-        </div>
+        <LoadingState message="Đang tải danh mục khách sạn..." />
       ) : hotels.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-slate-200">
-          <p className="text-slate-500 font-medium text-sm">Chưa có khách sạn nào được gán cho tài khoản của bạn.</p>
-        </div>
+        <EmptyState
+          icon="🏨"
+          title="Chưa có khách sạn nào"
+          description="Chưa có khách sạn nào được liên kết với tài khoản quản trị của bạn."
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {hotels.map((hotel) => {
             const allRooms = Array.isArray(hotel.rooms)
               ? hotel.rooms
-              : (hotel.floors || []).flatMap(f => f.rooms || []);
+              : (hotel.floors || []).flatMap((f) => f.rooms || []);
 
             return (
-              <div
-                key={hotel.id}
-                className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between"
-              >
+              <Card key={hotel.id} className="overflow-hidden flex flex-col justify-between">
                 <div>
-                  <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
+                  <div className="relative h-44 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                     <img
-                      src={hotel.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"}
+                      src={
+                        hotel.image ||
+                        "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"
+                      }
                       alt={hotel.name}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-2.5 py-1 rounded-full text-xs font-black text-amber-500 shadow flex items-center gap-1">
+                    <div className="absolute top-2.5 right-2.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-2.5 py-0.5 rounded-full text-xs font-bold text-amber-500 shadow flex items-center gap-1">
                       ⭐ {hotel.rating || 5.0}
                     </div>
-                    <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur text-white text-[11px] font-bold px-2.5 py-0.5 rounded-lg">
+                    <div className="absolute bottom-2.5 left-2.5 bg-slate-900/80 backdrop-blur text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
                       Mã KS: #{hotel.id}
                     </div>
                   </div>
 
-                  <div className="p-5">
-                    <h3 className="text-base font-extrabold text-slate-900 line-clamp-1">{hotel.name}</h3>
-                    <p className="text-slate-500 text-xs mt-1 flex items-center gap-1">
+                  <div className="p-4">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white line-clamp-1">
+                      {hotel.name}
+                    </h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-1 flex items-center gap-1">
                       <span>📍</span> {hotel.location}
                     </p>
-                    <p className="text-slate-600 text-xs mt-3 line-clamp-2 leading-relaxed">
-                      {hotel.description || "Khách sạn tiêu chuẩn quốc tế đầy đủ tiện nghi, view đẹp và dịch vụ chuyên nghiệp."}
+                    <p className="text-slate-600 dark:text-slate-400 text-xs mt-2.5 line-clamp-2 leading-relaxed">
+                      {hotel.description ||
+                        "Khách sạn tiêu chuẩn quốc tế đầy đủ tiện nghi, view đẹp và dịch vụ chuyên nghiệp."}
                     </p>
 
-                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                       <div>
-                        <span className="text-slate-400 block text-[11px]">Giá phòng từ</span>
-                        <strong className="text-red-600 font-black text-sm">
-                          {typeof hotel.priceFrom === "number" ? hotel.priceFrom.toLocaleString("vi-VN") : (hotel.priceFrom || 600000)} đ
+                        <span className="text-slate-400 text-[10px] block">Giá phòng từ</span>
+                        <strong className="text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+                          {typeof hotel.priceFrom === "number"
+                            ? hotel.priceFrom.toLocaleString("vi-VN")
+                            : hotel.priceFrom || 600000}{" "}
+                          đ
                         </strong>
                       </div>
                       <div className="text-right">
-                        <span className="text-slate-400 block text-[11px]">Quy mô phòng</span>
-                        <strong className="text-slate-800 font-bold">
+                        <span className="text-slate-400 text-[10px] block">Cơ cấu phòng</span>
+                        <strong className="text-slate-700 dark:text-slate-300 font-semibold">
                           {allRooms.length > 0 ? `${allRooms.length} phòng` : "Sơ đồ phòng"}
                         </strong>
                       </div>
@@ -206,259 +208,217 @@ export default function HotelManagement() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <button
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex-1 justify-center"
                     onClick={() => {
                       setSelectedHotelRooms(hotel);
                       setRoomTypeFilter("ALL");
                       setRoomStatusFilter("ALL");
                       setRoomSearchQuery("");
                     }}
-                    className="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 rounded-xl transition"
                   >
                     Xem Chi Tiết Phòng ({allRooms.length})
-                  </button>
+                  </Button>
                   {isSuperAdmin && (
-                    <button
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => handleDelete(hotel.id)}
-                      className="p-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl transition text-xs font-bold"
-                      title="Xóa khách sạn (Chỉ Super Admin)"
+                      title="Xóa khách sạn"
                     >
                       🗑️
-                    </button>
+                    </Button>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
       )}
 
       {/* Modal Create Hotel (Super Admin Only) */}
-      {showModal && isSuperAdmin && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 relative animate-fadeIn">
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold"
-            >
-              ×
-            </button>
-
-            <h3 className="text-xl font-black text-slate-900 border-b border-slate-100 pb-3">
-              Thêm Khách Sạn Mới (POST /api/hotels)
-            </h3>
-
-            <form onSubmit={handleCreateHotel} className="space-y-4 mt-4 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Tên Khách Sạn *</label>
-                <input
-                  required
-                  type="text"
-                  placeholder="VD: Sunshine Boutique Hotel & Spa"
-                  value={newHotel.name}
-                  onChange={(e) => setNewHotel({ ...newHotel, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-xl border-slate-300 focus:border-red-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Địa Chỉ / Vị Trí *</label>
-                <input
-                  required
-                  type="text"
-                  placeholder="VD: 88 Trần Phú, Lộc Thọ, Nha Trang"
-                  value={newHotel.location}
-                  onChange={(e) => setNewHotel({ ...newHotel, location: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-xl border-slate-300 focus:border-red-500 outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Giá Khởi Điểm (VNĐ)</label>
-                  <input
-                    type="number"
-                    value={newHotel.priceFrom}
-                    onChange={(e) => setNewHotel({ ...newHotel, priceFrom: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-xl border-slate-300 focus:border-red-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Đánh Giá (Sao)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    max="5"
-                    value={newHotel.rating}
-                    onChange={(e) => setNewHotel({ ...newHotel, rating: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-xl border-slate-300 focus:border-red-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">URL Ảnh Khách Sạn</label>
-                <input
-                  type="url"
-                  value={newHotel.image}
-                  onChange={(e) => setNewHotel({ ...newHotel, image: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-xl border-slate-300 focus:border-red-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Mô Tả Giới Thiệu</label>
-                <textarea
-                  rows="3"
-                  placeholder="Mô tả các dịch vụ nổi bật, phòng ốc và tiện ích..."
-                  value={newHotel.description}
-                  onChange={(e) => setNewHotel({ ...newHotel, description: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-xl border-slate-300 focus:border-red-500 outline-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border rounded-xl text-slate-600 font-bold hover:bg-slate-50 transition"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2 rounded-xl transition shadow"
-                >
-                  Tạo Khách Sạn
-                </button>
-              </div>
-            </form>
+      <Modal
+        isOpen={showModal && isSuperAdmin}
+        onClose={() => setShowModal(false)}
+        title="Thêm Khách Sạn Mới Vào Hệ Thống"
+        size="md"
+      >
+        <form onSubmit={handleCreateHotel} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Tên Khách Sạn *
+            </label>
+            <Input
+              required
+              placeholder="VD: Vinpearl Luxury Landmark 81"
+              value={newHotel.name}
+              onChange={(e) => setNewHotel({ ...newHotel, name: e.target.value })}
+            />
           </div>
-        </div>
-      )}
 
-      {/* Modal View Hotel Rooms */}
-      {selectedHotelRooms && (() => {
-        const allRooms = Array.isArray(selectedHotelRooms.rooms)
-          ? selectedHotelRooms.rooms
-          : (selectedHotelRooms.floors || []).flatMap((f) => f.rooms || []);
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Địa Chỉ / Vị Trí *
+            </label>
+            <Input
+              required
+              placeholder="VD: 720A Điện Biên Phủ, Phường 22, Bình Thạnh, TP.HCM"
+              value={newHotel.location}
+              onChange={(e) => setNewHotel({ ...newHotel, location: e.target.value })}
+            />
+          </div>
 
-        // Unique room types from this hotel (e.g. Standard Single, Superior Double, Standard Twin)
-        const uniqueTypes = Array.from(
-          new Set(allRooms.map((r) => r.type || "Tiêu chuẩn"))
-        ).filter(Boolean);
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Giá phòng khởi điểm (VNĐ)
+              </label>
+              <Input
+                type="number"
+                value={newHotel.priceFrom}
+                onChange={(e) => setNewHotel({ ...newHotel, priceFrom: Number(e.target.value) })}
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Đánh giá (Rating sao)
+              </label>
+              <Input
+                type="number"
+                step="0.1"
+                min="1"
+                max="5"
+                value={newHotel.rating}
+                onChange={(e) => setNewHotel({ ...newHotel, rating: Number(e.target.value) })}
+              />
+            </div>
+          </div>
 
-        // Status counts
-        const availableCount = allRooms.filter(
-          (r) => r.status === "AVAILABLE" || !r.status || r.status === "TRỐNG"
-        ).length;
-        const occupiedCount = allRooms.filter(
-          (r) => r.status === "OCCUPIED" || r.status === "BOOKED"
-        ).length;
-        const maintenanceCount = allRooms.filter(
-          (r) => r.status === "MAINTENANCE"
-        ).length;
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              URL Hình Ảnh Đại Diện
+            </label>
+            <Input
+              value={newHotel.image}
+              onChange={(e) => setNewHotel({ ...newHotel, image: e.target.value })}
+            />
+          </div>
 
-        // Filtered rooms
-        const filteredRooms = allRooms.filter((room) => {
-          const roomType = room.type || "Tiêu chuẩn";
-          const matchType = roomTypeFilter === "ALL" || roomType === roomTypeFilter;
-          const matchStatus =
-            roomStatusFilter === "ALL" ||
-            (roomStatusFilter === "AVAILABLE" && (room.status === "AVAILABLE" || !room.status || room.status === "TRỐNG")) ||
-            (roomStatusFilter === "OCCUPIED" && (room.status === "OCCUPIED" || room.status === "BOOKED")) ||
-            (roomStatusFilter === "MAINTENANCE" && room.status === "MAINTENANCE");
-          const roomName = (room.name || room.number || String(room.id) || "").toLowerCase();
-          const matchSearch = !roomSearchQuery || roomName.includes(roomSearchQuery.toLowerCase());
-          return matchType && matchStatus && matchSearch;
-        });
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Mô Tả Giới Thiệu
+            </label>
+            <textarea
+              rows={3}
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-xs outline-none focus:border-indigo-500"
+              placeholder="Giới thiệu về cảnh quan, dịch vụ..."
+              value={newHotel.description}
+              onChange={(e) => setNewHotel({ ...newHotel, description: e.target.value })}
+            />
+          </div>
 
-        return (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-5">
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full p-6 relative max-h-[90vh] flex flex-col animate-fadeIn">
-              {/* Header */}
-              <div className="flex items-start justify-between pb-4 border-b border-slate-100">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">
-                      Chi Tiết Cơ Cấu Phòng
-                    </span>
-                    <span className="text-xs text-slate-400 font-bold">
-                      Mã KS: #{selectedHotelRooms.id}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-black text-slate-900 mt-1">
-                    {selectedHotelRooms.name}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-                    <span>📍</span> {selectedHotelRooms.location}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setSelectedHotelRooms(null)}
-                  className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center text-xl font-bold transition"
-                  title="Đóng modal"
-                >
-                  ×
-                </button>
-              </div>
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setShowModal(false)}
+            >
+              Hủy
+            </Button>
+            <Button variant="primary" type="submit">
+              Xác Nhận Tạo Khách Sạn
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
+      {/* Modal Room Detail View */}
+      <Modal
+        isOpen={!!selectedHotelRooms}
+        onClose={() => setSelectedHotelRooms(null)}
+        title={
+          selectedHotelRooms
+            ? `Cơ Cấu Phòng: ${selectedHotelRooms.name} (Mã #${selectedHotelRooms.id})`
+            : "Chi Tiết Phòng"
+        }
+        size="xl"
+      >
+        {selectedHotelRooms && (() => {
+          const allRooms = Array.isArray(selectedHotelRooms.rooms)
+            ? selectedHotelRooms.rooms
+            : (selectedHotelRooms.floors || []).flatMap((f) => f.rooms || []);
+
+          const uniqueTypes = Array.from(
+            new Set(allRooms.map((r) => r.type || "Tiêu chuẩn"))
+          ).filter(Boolean);
+
+          const availableCount = allRooms.filter(
+            (r) => r.status === "AVAILABLE" || !r.status || r.status === "TRỐNG"
+          ).length;
+          const occupiedCount = allRooms.filter(
+            (r) => r.status === "OCCUPIED" || r.status === "BOOKED"
+          ).length;
+          const maintenanceCount = allRooms.filter((r) => r.status === "MAINTENANCE").length;
+
+          const filteredRooms = allRooms.filter((room) => {
+            const roomType = room.type || "Tiêu chuẩn";
+            const matchType = roomTypeFilter === "ALL" || roomType === roomTypeFilter;
+            const matchStatus =
+              roomStatusFilter === "ALL" ||
+              (roomStatusFilter === "AVAILABLE" && (room.status === "AVAILABLE" || !room.status || room.status === "TRỐNG")) ||
+              (roomStatusFilter === "OCCUPIED" && (room.status === "OCCUPIED" || room.status === "BOOKED")) ||
+              (roomStatusFilter === "MAINTENANCE" && room.status === "MAINTENANCE");
+            const roomName = (room.name || room.number || String(room.id) || "").toLowerCase();
+            const matchSearch = !roomSearchQuery || roomName.includes(roomSearchQuery.toLowerCase());
+            return matchType && matchStatus && matchSearch;
+          });
+
+          return (
+            <div className="space-y-4 text-xs">
               {/* Status summary banner */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 py-3 border-b border-slate-100 text-xs">
-                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 flex items-center justify-between">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                   <span className="text-slate-500 font-medium">Tổng phòng:</span>
-                  <span className="font-extrabold text-slate-900">{allRooms.length}</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{allRooms.length}</span>
                 </div>
-                <div className="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200/80 flex items-center justify-between">
-                  <span className="text-emerald-700 font-medium flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Còn Trống:
+                <div className="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
+                  <span className="text-emerald-700 dark:text-emerald-300 font-medium flex items-center gap-1">
+                    🟢 Còn Trống:
                   </span>
-                  <span className="font-extrabold text-emerald-800">{availableCount}</span>
+                  <span className="font-bold text-emerald-800 dark:text-emerald-200">{availableCount}</span>
                 </div>
-                <div className="bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/80 flex items-center justify-between">
-                  <span className="text-amber-700 font-medium flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> Đang Ở / Đặt:
+                <div className="bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800 flex items-center justify-between">
+                  <span className="text-amber-700 dark:text-amber-300 font-medium flex items-center gap-1">
+                    🟡 Đang Ở:
                   </span>
-                  <span className="font-extrabold text-amber-800">{occupiedCount}</span>
+                  <span className="font-bold text-amber-800 dark:text-amber-200">{occupiedCount}</span>
                 </div>
-                <div className="bg-rose-50/60 p-2.5 rounded-xl border border-rose-200/80 flex items-center justify-between">
-                  <span className="text-rose-700 font-medium flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> Bảo Trì:
+                <div className="bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-200 dark:border-rose-800 flex items-center justify-between">
+                  <span className="text-rose-700 dark:text-rose-300 font-medium flex items-center gap-1">
+                    🔴 Bảo Trì:
                   </span>
-                  <span className="font-extrabold text-rose-800">{maintenanceCount}</span>
+                  <span className="font-bold text-rose-800 dark:text-rose-200">{maintenanceCount}</span>
                 </div>
               </div>
 
               {/* Room Type Filter Tabs */}
-              <div className="py-3 border-b border-slate-100 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase text-slate-500 tracking-wider">
-                    Lọc Theo Hạng Phòng (Room Types):
-                  </span>
-                  <span className="text-[11px] text-slate-400">
-                    Hiển thị {filteredRooms.length}/{allRooms.length} phòng
-                  </span>
-                </div>
-
+              <div className="space-y-2">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                  Lọc theo hạng phòng:
+                </span>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setRoomTypeFilter("ALL")}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
                       roomTypeFilter === "ALL"
-                        ? "bg-slate-900 text-white shadow"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow"
+                        : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200"
                     }`}
                   >
-                    <span>🗂️ Tất Cả</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                        roomTypeFilter === "ALL" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
-                      }`}
-                    >
-                      {allRooms.length}
-                    </span>
+                    <span>Tất Cả ({allRooms.length})</span>
                   </button>
 
                   {uniqueTypes.map((type) => {
@@ -468,42 +428,35 @@ export default function HotelManagement() {
                       <button
                         key={type}
                         onClick={() => setRoomTypeFilter(type)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
                           isActive
-                            ? "bg-red-600 text-white shadow-md shadow-red-600/30"
-                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                            ? "bg-indigo-600 text-white shadow"
+                            : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200"
                         }`}
                       >
-                        <span>🛏️ {type}</span>
-                        <span
-                          className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                            isActive ? "bg-white/25 text-white" : "bg-slate-200 text-slate-700"
-                          }`}
-                        >
-                          {count}
-                        </span>
+                        <span>🛏️ {type} ({count})</span>
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Sub-filter row: Status and Search */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
-                  <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1 sm:pb-0">
-                    <span className="text-[11px] font-bold text-slate-400 mr-1">Trạng thái:</span>
+                {/* Sub-filters */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
+                  <div className="flex items-center gap-1 text-xs">
+                    <span className="text-slate-400 mr-1">Trạng thái:</span>
                     {[
                       { key: "ALL", label: "Tất cả" },
-                      { key: "AVAILABLE", label: "🟢 Trống" },
-                      { key: "OCCUPIED", label: "🟡 Đang ở" },
-                      { key: "MAINTENANCE", label: "🔴 Bảo trì" },
+                      { key: "AVAILABLE", label: "Trống" },
+                      { key: "OCCUPIED", label: "Đang ở" },
+                      { key: "MAINTENANCE", label: "Bảo trì" },
                     ].map((st) => (
                       <button
                         key={st.key}
                         onClick={() => setRoomStatusFilter(st.key)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${
+                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                           roomStatusFilter === st.key
-                            ? "bg-slate-800 text-white"
-                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            ? "bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 font-bold"
+                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                         }`}
                       >
                         {st.label}
@@ -511,94 +464,67 @@ export default function HotelManagement() {
                     ))}
                   </div>
 
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Tìm số phòng (vd: 101, 201)..."
+                  <div className="w-full sm:w-56">
+                    <Input
+                      placeholder="Tìm số phòng..."
                       value={roomSearchQuery}
                       onChange={(e) => setRoomSearchQuery(e.target.value)}
-                      className="text-xs px-3 py-1.5 pl-8 border border-slate-200 rounded-xl focus:border-red-500 outline-none w-full sm:w-56"
                     />
-                    <span className="absolute left-2.5 top-1.5 text-slate-400 text-xs">🔍</span>
-                    {roomSearchQuery && (
-                      <button
-                        onClick={() => setRoomSearchQuery("")}
-                        className="absolute right-2.5 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold"
-                      >
-                        ×
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Rooms List Grid */}
-              <div className="mt-4 overflow-y-auto flex-1 pr-1">
+              {/* Rooms Grid */}
+              <div className="max-h-96 overflow-y-auto pr-1">
                 {filteredRooms.length === 0 ? (
-                  <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                    <p className="text-slate-400 text-sm font-semibold">
-                      Không tìm thấy phòng nào phù hợp với bộ lọc đã chọn.
-                    </p>
-                    <button
-                      onClick={() => {
-                        setRoomTypeFilter("ALL");
-                        setRoomStatusFilter("ALL");
-                        setRoomSearchQuery("");
-                      }}
-                      className="mt-2 text-xs font-bold text-red-600 hover:underline"
-                    >
-                      Đặt lại bộ lọc
-                    </button>
-                  </div>
+                  <EmptyState
+                    icon="🚪"
+                    title="Không tìm thấy phòng phù hợp"
+                    description="Thử thay đổi bộ lọc hạng phòng hoặc trạng thái phòng."
+                  />
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     {filteredRooms.map((room) => {
+                      const isAvailable = room.status === "AVAILABLE" || !room.status || room.status === "TRỐNG";
                       const isOccupied = room.status === "OCCUPIED" || room.status === "BOOKED";
                       const isMaintenance = room.status === "MAINTENANCE";
 
                       return (
                         <div
                           key={room.id}
-                          className={`p-4 rounded-2xl border transition-all hover:shadow-md ${
-                            isOccupied
-                              ? "border-amber-300 bg-amber-50/40"
-                              : isMaintenance
-                              ? "border-rose-300 bg-rose-50/40"
-                              : "border-slate-200 bg-white hover:border-emerald-300"
+                          className={`p-3 rounded-xl border transition flex flex-col justify-between ${
+                            isAvailable
+                              ? "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50"
+                              : isOccupied
+                              ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50"
+                              : "bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800/50"
                           }`}
                         >
-                          <div className="flex items-center justify-between">
-                            <span className="font-black text-slate-900 text-sm flex items-center gap-1.5">
-                              <span>🚪</span>
-                              {room.name || `Phòng ${room.number || room.id}`}
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900 dark:text-white text-sm">
+                                #{room.name || room.number || room.id}
+                              </span>
+                              <span className="text-[10px]">
+                                {isAvailable ? "🟢" : isOccupied ? "🟡" : "🔴"}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5 truncate">
+                              {room.type || "Tiêu chuẩn"}
                             </span>
-                            <span
-                              className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${
-                                isOccupied
-                                  ? "bg-amber-100 text-amber-800 border border-amber-200"
-                                  : isMaintenance
-                                  ? "bg-rose-100 text-rose-800 border border-rose-200"
-                                  : "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                              }`}
-                            >
-                              {isOccupied ? "● ĐANG Ở" : isMaintenance ? "● BẢO TRÌ" : "● CÒN TRỐNG"}
-                            </span>
-                          </div>
-
-                          <div className="mt-2 flex items-center gap-1.5">
-                            <span className="bg-slate-100 text-slate-700 text-[11px] font-bold px-2 py-0.5 rounded-lg border border-slate-200/80">
-                              🛏️ {room.type || "Tiêu chuẩn"}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-mono">
-                              ID: #{room.id}
+                            <span className="text-[10px] text-slate-400 block">
+                              Tầng {room.floor || 1}
                             </span>
                           </div>
 
-                          <div className="mt-3 pt-2.5 border-t border-slate-100/80 flex items-center justify-between">
-                            <span className="text-[11px] text-slate-400">Giá thuê:</span>
-                            <span className="text-red-600 font-black text-xs">
-                              {(room.price || 500000).toLocaleString("vi-VN")} đ <span className="text-[10px] font-normal text-slate-400">/ đêm</span>
+                          <div className="mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                            <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">
+                              {typeof room.price === "number" ? room.price.toLocaleString("vi-VN") : room.price} đ
                             </span>
+                            <StatusBadge
+                              status={isAvailable ? "AVAILABLE" : isOccupied ? "OCCUPIED" : "MAINTENANCE"}
+                              type="room"
+                            />
                           </div>
                         </div>
                       );
@@ -607,9 +533,9 @@ export default function HotelManagement() {
                 )}
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
+      </Modal>
     </div>
   );
 }

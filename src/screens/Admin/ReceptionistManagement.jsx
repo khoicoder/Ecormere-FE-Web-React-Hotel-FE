@@ -3,8 +3,14 @@ import {
   getReceptionistsAPI,
   createReceptionistAPI,
   toggleReceptionistStatusAPI,
-  resetReceptionistPasswordAPI
+  resetReceptionistPasswordAPI,
 } from "../../services/staffService";
+import PageHeader from "../../components/ui/PageHeader";
+import { Card, CardHeader } from "../../components/ui/Card";
+import Button, { Input } from "../../components/ui/FormControls";
+import StatusBadge from "../../components/ui/StatusBadge";
+import Modal from "../../components/ui/Modal";
+import { LoadingState, EmptyState, Alert } from "../../components/ui/FeedbackStates";
 
 export default function ReceptionistManagement() {
   const [receptionists, setReceptionists] = useState([]);
@@ -19,7 +25,7 @@ export default function ReceptionistManagement() {
     password: "",
     email: "",
     phone: "",
-    address: ""
+    address: "",
   });
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -64,7 +70,7 @@ export default function ReceptionistManagement() {
         password: "",
         email: "",
         phone: "",
-        address: ""
+        address: "",
       });
       fetchReceptionists();
       setTimeout(() => setSuccessMsg(null), 4000);
@@ -122,378 +128,288 @@ export default function ReceptionistManagement() {
     );
   });
 
-  const hotelNameHeader = receptionists[0]?.hotelName || "Khách Sạn Của Bạn";
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
-      {/* Top Banner & Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/50 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden mb-8">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
-              🛎️ Phân Hệ Quản Trị Nhân Sự
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              Quản Lý & Tạo Tài Khoản Lễ Tân
-            </h1>
-            <p className="text-slate-300 text-sm mt-1 max-w-2xl">
-              Cơ sở phụ trách: <span className="font-bold text-emerald-400">{hotelNameHeader}</span>. Mỗi Admin khách sạn có toàn quyền tạo và quản lý tài khoản cho đội ngũ lễ tân của riêng mình.
-            </p>
+    <div className="space-y-6">
+      {/* SaaS Page Header */}
+      <PageHeader
+        title="Quản Lý Đội Ngũ Nhân Viên Lễ Tân"
+        subtitle="Admin mỗi khách sạn toàn quyền tuyển dụng, tạo tài khoản và quản trị lễ tân ca trực cho khách sạn của mình."
+        badge={userRole === "SUPER_ADMIN" ? "Super Admin" : "Hotel Admin"}
+        badgeVariant={userRole === "SUPER_ADMIN" ? "warning" : "info"}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<span>🔄</span>}
+              onClick={fetchReceptionists}
+            >
+              Làm Mới
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<span>+</span>}
+              onClick={() => setShowCreateModal(true)}
+            >
+              Tạo Lễ Tân Mới
+            </Button>
           </div>
+        }
+      />
 
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold px-6 py-3.5 rounded-2xl shadow-xl shadow-emerald-950/40 hover:scale-[1.02] active:scale-95 transition-all duration-200"
-          >
-            <span className="text-xl leading-none">➕</span>
-            <span>Tạo Tài Khoản Lễ Tân Mới</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Notifications */}
       {successMsg && (
-        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl flex items-center gap-3 font-semibold text-sm shadow-sm">
-          <span>✅</span>
-          <span>{successMsg}</span>
-        </div>
+        <Alert
+          type="success"
+          message={successMsg}
+          onClose={() => setSuccessMsg(null)}
+        />
       )}
       {error && (
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-300 text-rose-800 rounded-2xl flex items-center gap-3 font-semibold text-sm shadow-sm">
-          <span>⚠️</span>
-          <span>{error}</span>
-        </div>
+        <Alert
+          type="error"
+          message={error}
+          onClose={() => setError(null)}
+        />
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Tổng Số Lễ Tân</p>
-            <p className="text-3xl font-black text-slate-900 mt-1">{receptionists.length}</p>
-          </div>
-          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xl font-bold">
-            👥
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Đang Hoạt Động</p>
-            <p className="text-3xl font-black text-emerald-600 mt-1">
-              {receptionists.filter((r) => r.active).length}
-            </p>
-          </div>
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl font-bold">
-            🟢
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Đang Bị Khóa</p>
-            <p className="text-3xl font-black text-rose-600 mt-1">
-              {receptionists.filter((r) => !r.active).length}
-            </p>
-          </div>
-          <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-xl font-bold">
-            🔒
-          </div>
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-6 flex items-center gap-3 shadow-sm">
-        <span className="text-slate-400 text-lg">🔍</span>
-        <input
-          type="text"
-          placeholder="Tìm kiếm theo Tên đăng nhập, Email, Số điện thoại hoặc Khách sạn..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full text-sm font-medium bg-transparent border-none outline-none text-slate-800 placeholder:text-slate-400"
+      {/* Main Table Card */}
+      <Card>
+        <CardHeader
+          title="Danh Sách Nhân Viên Lễ Tân Theo Ca"
+          subtitle={`Hiển thị ${filteredStaff.length} nhân sự`}
+          action={
+            <div className="w-64">
+              <Input
+                placeholder="Tìm tên, email, khách sạn..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          }
         />
-        {searchTerm && (
-          <button
-            onClick={() => setSearchTerm("")}
-            className="text-xs text-slate-400 hover:text-slate-600 font-bold px-2 py-1"
-          >
-            Xóa
-          </button>
-        )}
-      </div>
 
-      {/* Staff Table */}
-      <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="py-20 text-center">
-            <div className="inline-block animate-spin text-3xl">⏳</div>
-            <p className="text-slate-500 font-bold text-sm mt-3">Đang tải danh sách lễ tân...</p>
-          </div>
-        ) : filteredStaff.length === 0 ? (
-          <div className="py-16 text-center">
-            <div className="text-4xl">🛎️</div>
-            <p className="text-slate-700 font-bold text-base mt-2">Chưa có tài khoản lễ tân nào</p>
-            <p className="text-slate-400 text-xs mt-1">Nhấn nút "Tạo Tài Khoản Lễ Tân Mới" phía trên để cấp tài khoản cho nhân viên của bạn.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                  <th className="py-4 px-6">Lễ Tân</th>
-                  <th className="py-4 px-6">Khách Sạn Trực Thuộc</th>
-                  <th className="py-4 px-6">Liên Hệ</th>
-                  <th className="py-4 px-6">Địa Chỉ / Ca Trực</th>
-                  <th className="py-4 px-6">Trạng Thái</th>
-                  <th className="py-4 px-6 text-right">Hành Động</th>
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="p-8">
+              <LoadingState message="Đang tải danh sách nhân viên lễ tân..." />
+            </div>
+          ) : filteredStaff.length === 0 ? (
+            <div className="p-8">
+              <EmptyState
+                icon="🛎️"
+                title="Chưa có nhân viên lễ tân"
+                description="Khách sạn của bạn chưa có tài khoản lễ tân nào. Hãy tạo tài khoản mới để bàn giao quyền đón tiếp."
+              />
+            </div>
+          ) : (
+            <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th className="py-3 px-4">Tài Khoản Lễ Tân</th>
+                  <th className="py-3 px-4">Khách Sạn Trực Thuộc</th>
+                  <th className="py-3 px-4">Email & Liên Hệ</th>
+                  <th className="py-3 px-4">Trạng Thái Hoạt Động</th>
+                  <th className="py-3 px-4 text-right">Thao Tác Bảo Mật</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
-                {filteredStaff.map((staff) => (
-                  <tr key={staff.staffId || staff.id} className="hover:bg-slate-50/60 transition">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-700 text-white font-black text-sm flex items-center justify-center shadow-md">
-                          {staff.username?.substring(0, 2).toUpperCase()}
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredStaff.map((r) => (
+                  <tr key={r.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center">
+                          {r.username?.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900">@{staff.username}</p>
-                          <p className="text-xs text-slate-400 font-mono">ID: #{staff.id}</p>
+                          <span className="font-semibold text-slate-900 dark:text-white block text-xs">
+                            @{r.username}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            ID: #{r.id}
+                          </span>
                         </div>
                       </div>
                     </td>
-
-                    <td className="py-4 px-6">
-                      <span className="font-semibold text-slate-800 flex items-center gap-1.5">
-                        <span>🏨</span>
-                        <span>{staff.hotelName || "Chưa phân bổ"}</span>
+                    <td className="py-3 px-4 text-xs">
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 block">
+                        🏨 {r.hotelName || `Khách sạn #${r.hotelId || 1}`}
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {r.hotelLocation || "Chi nhánh quản lý"}
                       </span>
                     </td>
-
-                    <td className="py-4 px-6">
-                      <p className="text-xs text-slate-600">📧 {staff.email || "—"}</p>
-                      <p className="text-xs text-slate-600 mt-0.5">📞 {staff.phone || "—"}</p>
+                    <td className="py-3 px-4 text-xs">
+                      <span className="text-slate-800 dark:text-slate-200 font-medium block">
+                        {r.email}
+                      </span>
+                      <span className="text-slate-400 text-[11px]">
+                        {r.phone || "Chưa cập nhật"}
+                      </span>
                     </td>
-
-                    <td className="py-4 px-6 text-xs text-slate-500 max-w-xs truncate">
-                      {staff.address || "Quầy Lễ Tân"}
+                    <td className="py-3 px-4">
+                      <StatusBadge
+                        status={r.active ? "ACTIVE" : "INACTIVE"}
+                        type="hotel"
+                      />
                     </td>
-
-                    <td className="py-4 px-6">
-                      {staff.active ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                          Hoạt động
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                          Đã khóa
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="py-4 px-6 text-right">
-                      <div className="inline-flex items-center gap-2">
-                        <button
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="secondary"
                           onClick={() => {
-                            setSelectedStaff(staff);
+                            setSelectedStaff(r);
                             setShowResetModal(true);
                           }}
-                          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
-                          title="Đổi mật khẩu"
                         >
-                          🔑 Đổi MK
-                        </button>
-
-                        <button
-                          onClick={() => handleToggleStatus(staff.id, staff.username, staff.active)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                            staff.active
-                              ? "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200"
-                              : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200"
-                          }`}
+                          Đổi Mật Khẩu
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={r.active ? "danger" : "primary"}
+                          onClick={() => handleToggleStatus(r.id, r.username, r.active)}
                         >
-                          {staff.active ? "🔒 Khóa" : "🔓 Mở"}
-                        </button>
+                          {r.active ? "Khóa" : "Mở Khóa"}
+                        </Button>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
-      </div>
-
-      {/* MODAL: CREATE RECEPTIONIST */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-100">
-            <div className="bg-gradient-to-r from-indigo-900 to-slate-900 p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🛎️</span>
-                  <h3 className="text-lg font-black tracking-tight">Tạo Tài Khoản Lễ Tân Mới</h3>
-                </div>
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm"
-                >
-                  ✕
-                </button>
-              </div>
-              <p className="text-indigo-200 text-xs mt-1">
-                Tài khoản được tạo sẽ tự động gắn quyền Lễ tân cho khách sạn <span className="font-bold text-white">{hotelNameHeader}</span>.
-              </p>
-            </div>
-
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Tên đăng nhập <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="ví dụ: letan_ca1"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Mật khẩu khởi tạo <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  placeholder="Tối thiểu 6 ký tự"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Email liên hệ <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="letan@hotel.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Số điện thoại
-                </label>
-                <input
-                  type="tel"
-                  placeholder="0987654321"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Ca trực / Ghi chú bàn giao
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ví dụ: Ca sáng 6h - 14h / Quầy Sảnh B"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
-                />
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={createLoading}
-                  className="px-6 py-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white shadow-lg shadow-indigo-600/30 transition disabled:opacity-50"
-                >
-                  {createLoading ? "Đang tạo..." : "Xác nhận Tạo Lễ Tân"}
-                </button>
-              </div>
-            </form>
-          </div>
+          )}
         </div>
-      )}
+      </Card>
 
-      {/* MODAL: RESET PASSWORD */}
-      {showResetModal && selectedStaff && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100">
-            <div className="bg-slate-900 p-5 text-white flex items-center justify-between">
-              <h3 className="font-bold text-sm">🔑 Đổi Mật Khẩu Lễ Tân</h3>
-              <button
-                onClick={() => setShowResetModal(false)}
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs"
-              >
-                ✕
-              </button>
+      {/* Modal Create Receptionist */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Tạo Tài Khoản Lễ Tân Mới"
+        size="md"
+      >
+        <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Tên Đăng Nhập (Username) *
+              </label>
+              <Input
+                required
+                placeholder="VD: letan_danang"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              />
             </div>
-
-            <form onSubmit={handleResetPasswordSubmit} className="p-5 space-y-4">
-              <p className="text-xs text-slate-600">
-                Bạn đang đặt lại mật khẩu cho tài khoản:{" "}
-                <span className="font-bold text-slate-900">@{selectedStaff.username}</span>
-              </p>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                  Mật khẩu mới
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  placeholder="Tối thiểu 6 ký tự"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowResetModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
-                >
-                  Đóng
-                </button>
-                <button
-                  type="submit"
-                  disabled={resetLoading}
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md disabled:opacity-50"
-                >
-                  {resetLoading ? "Đang lưu..." : "Lưu mật khẩu mới"}
-                </button>
-              </div>
-            </form>
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Mật Khẩu Khởi Tạo *
+              </label>
+              <Input
+                required
+                type="password"
+                placeholder="Tối thiểu 6 ký tự"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Email *
+              </label>
+              <Input
+                required
+                type="email"
+                placeholder="letan@hotel.vn"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Số Điện Thoại
+              </label>
+              <Input
+                placeholder="09xx xxx xxx"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Địa Chỉ / Ca Trực
+            </label>
+            <Input
+              placeholder="VD: Ca sáng (6h - 14h), địa chỉ tạm trú..."
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setShowCreateModal(false)}
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={createLoading}
+            >
+              {createLoading ? "Đang tạo..." : "Xác Nhận Tạo Lễ Tân"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal Reset Password */}
+      <Modal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        title={`Cấp Lại Mật Khẩu Cho Lễ Tân: @${selectedStaff?.username}`}
+        size="sm"
+      >
+        <form onSubmit={handleResetPasswordSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Mật Khẩu Mới *
+            </label>
+            <Input
+              required
+              type="password"
+              placeholder="Tối thiểu 6 ký tự"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setShowResetModal(false)}
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={resetLoading}
+            >
+              {resetLoading ? "Đang đổi..." : "Cập Nhật Mật Khẩu"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

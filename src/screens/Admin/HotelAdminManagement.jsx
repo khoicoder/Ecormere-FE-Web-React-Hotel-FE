@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { getHotelAdminsAPI, createHotelAdminAPI } from "../../services/staffService";
+import PageHeader from "../../components/ui/PageHeader";
+import { Card, CardHeader } from "../../components/ui/Card";
+import Button, { Input, Select } from "../../components/ui/FormControls";
+import StatusBadge from "../../components/ui/StatusBadge";
+import Modal from "../../components/ui/Modal";
+import { LoadingState, EmptyState, Alert } from "../../components/ui/FeedbackStates";
 
 export default function HotelAdminManagement() {
   const [hotels, setHotels] = useState([]);
@@ -15,7 +21,7 @@ export default function HotelAdminManagement() {
     password: "",
     email: "",
     phone: "",
-    address: ""
+    address: "",
   });
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -58,7 +64,7 @@ export default function HotelAdminManagement() {
         password: "",
         email: "",
         phone: "",
-        address: ""
+        address: "",
       });
       fetchHotelAdmins();
       setTimeout(() => setSuccessMsg(null), 5000);
@@ -83,342 +89,306 @@ export default function HotelAdminManagement() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
-      {/* Top Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-purple-900/50 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden mb-8">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">
-              👑 Super Admin Control Hub
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              Phân Quyền & Quản Lý Admin Lớn Khách Sạn
-            </h1>
-            <p className="text-slate-300 text-sm mt-1 max-w-2xl leading-relaxed">
-              Nguyên tắc nghiệp vụ chuẩn: <span className="text-purple-300 font-bold">Mỗi khách sạn chỉ có DUY NHẤT 1 Admin Lớn phụ trách</span>. Super Admin có toàn quyền tạo mới tài khoản cho các Admin nhỏ hơn và ủy quyền điều hành từng khách sạn.
-            </p>
+    <div className="space-y-6">
+      {/* SaaS Page Header */}
+      <PageHeader
+        title="Quản Lý Admin Khách Sạn (Hotel Admins)"
+        subtitle="Mỗi khách sạn chỉ có 1 Admin Lớn phụ trách. Super Admin có toàn quyền tạo mới và ủy quyền quản lý từng cơ sở."
+        badge="Super Admin Hub"
+        badgeVariant="warning"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<span>🔄</span>}
+              onClick={fetchHotelAdmins}
+            >
+              Làm Mới
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<span>+</span>}
+              onClick={() => setShowCreateModal(true)}
+            >
+              Tạo Admin Cho Khách Sạn
+            </Button>
           </div>
+        }
+      />
 
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold px-6 py-3.5 rounded-2xl shadow-xl shadow-purple-950/40 hover:scale-[1.02] active:scale-95 transition-all duration-200"
-          >
-            <span className="text-xl leading-none">➕</span>
-            <span>Tạo Admin Cho Khách Sạn</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Notifications */}
       {successMsg && (
-        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl flex items-center gap-3 font-semibold text-sm shadow-sm">
-          <span>✅</span>
-          <span>{successMsg}</span>
-        </div>
+        <Alert
+          type="success"
+          message={successMsg}
+          onClose={() => setSuccessMsg(null)}
+        />
       )}
       {error && (
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-300 text-rose-800 rounded-2xl flex items-center gap-3 font-semibold text-sm shadow-sm">
-          <span>⚠️</span>
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Tổng Khách Sạn</p>
-            <p className="text-3xl font-black text-slate-900 mt-1">{hotels.length}</p>
-          </div>
-          <div className="w-12 h-12 bg-slate-100 text-slate-700 rounded-2xl flex items-center justify-center text-xl font-bold">
-            🏨
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Đã Có Admin Lớn</p>
-            <p className="text-3xl font-black text-emerald-600 mt-1">{hotelsWithAdmin.length}</p>
-          </div>
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl font-bold">
-            ✅
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Chưa Có Admin</p>
-            <p className="text-3xl font-black text-rose-600 mt-1">{hotelsWithoutAdmin.length}</p>
-          </div>
-          <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-xl font-bold">
-            ⚠️
-          </div>
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-6 flex items-center gap-3 shadow-sm">
-        <span className="text-slate-400 text-lg">🔍</span>
-        <input
-          type="text"
-          placeholder="Tìm kiếm theo Tên khách sạn, Địa chỉ, hoặc Tên đăng nhập Admin..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full text-sm font-medium bg-transparent border-none outline-none text-slate-800 placeholder:text-slate-400"
+        <Alert
+          type="error"
+          message={error}
+          onClose={() => setError(null)}
         />
-        {searchTerm && (
-          <button
-            onClick={() => setSearchTerm("")}
-            className="text-xs text-slate-400 hover:text-slate-600 font-bold px-2 py-1"
-          >
-            Xóa
-          </button>
-        )}
-      </div>
+      )}
 
-      {/* Hotel Admin Grid Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <div className="col-span-full py-20 text-center">
-            <div className="inline-block animate-spin text-3xl">⏳</div>
-            <p className="text-slate-500 font-bold text-sm mt-3">Đang tải danh sách khách sạn & admin...</p>
-          </div>
-        ) : filteredHotels.length === 0 ? (
-          <div className="col-span-full py-16 text-center bg-white rounded-3xl border border-slate-200">
-            <p className="text-slate-500 font-bold">Không tìm thấy khách sạn phù hợp.</p>
-          </div>
-        ) : (
-          filteredHotels.map((hotel) => (
-            <div
-              key={hotel.hotelId}
-              className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
-            >
-              <div>
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div>
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                      Hotel ID: #{hotel.hotelId}
-                    </span>
-                    <h3 className="font-black text-slate-900 text-base leading-snug mt-0.5">
-                      {hotel.hotelName}
-                    </h3>
-                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                      <span>📍</span>
-                      <span>{hotel.hotelLocation || "Chưa cập nhật địa chỉ"}</span>
-                    </p>
-                  </div>
-
-                  {hotel.hasAdmin ? (
-                    <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
-                      <span>👑</span> 1 Admin Lớn
-                    </span>
-                  ) : (
-                    <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200">
-                      <span>⚠️</span> Khuyết Admin
-                    </span>
-                  )}
-                </div>
-
-                <div className="text-xs text-slate-500 font-semibold mb-4 flex items-center gap-2">
-                  <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg">
-                    🛏️ {hotel.roomCount} Phòng
-                  </span>
-                </div>
-
-                {/* Admin Details Box */}
-                <div className="border-t border-slate-100 pt-4">
-                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">
-                    Quản Trị Viên Phụ Trách (Admin Lớn)
-                  </p>
-
-                  {hotel.hasAdmin ? (
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-9 h-9 rounded-xl bg-purple-600 text-white font-black text-xs flex items-center justify-center shadow-md">
-                          {hotel.adminUsername?.substring(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-extrabold text-sm text-slate-900">
-                            @{hotel.adminUsername}
-                          </p>
-                          <p className="text-[11px] text-slate-400 font-mono">
-                            User ID: #{hotel.adminId}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="space-y-1 text-xs text-slate-600 font-medium">
-                        <p>📧 {hotel.adminEmail || "—"}</p>
-                        <p>📞 {hotel.adminPhone || "—"}</p>
-                        <p className="flex items-center gap-1.5 pt-1">
-                          <span className={`w-2 h-2 rounded-full ${hotel.adminActive ? "bg-emerald-500" : "bg-rose-500"}`}></span>
-                          <span className={hotel.adminActive ? "text-emerald-700 font-bold" : "text-rose-700 font-bold"}>
-                            {hotel.adminActive ? "Đang Hoạt Động" : "Tài Khoản Đã Khóa"}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-amber-50/60 border border-amber-200 rounded-2xl p-4 text-center">
-                      <p className="text-xs font-bold text-amber-800">Khách sạn chưa có Admin lớn phụ trách</p>
-                      <p className="text-[11px] text-amber-600 mt-0.5">Nhấn nút bên dưới để tạo và bổ nhiệm Admin lớn.</p>
-                      <button
-                        onClick={() => {
-                          setFormData({ ...formData, hotelId: hotel.hotelId });
-                          setShowCreateModal(true);
-                        }}
-                        className="mt-3 px-4 py-2 rounded-xl text-xs font-extrabold bg-amber-600 hover:bg-amber-700 text-white shadow-md transition"
-                      >
-                        ➕ Bổ Nhiệm Admin Ngay
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* MODAL: CREATE HOTEL ADMIN */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100">
-            <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">👑</span>
-                  <h3 className="text-lg font-black tracking-tight">Tạo & Bổ Nhiệm Admin Khách Sạn</h3>
-                </div>
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm"
-                >
-                  ✕
-                </button>
-              </div>
-              <p className="text-purple-200 text-xs mt-1">
-                Tài khoản mới sẽ có role <span className="font-bold text-white">ADMIN</span> và được trao quyền Admin lớn của khách sạn được chọn.
-              </p>
-            </div>
-
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
-              {/* Hotel Select */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Chọn Khách Sạn Bổ Nhiệm <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  required
-                  value={formData.hotelId}
-                  onChange={(e) => setFormData({ ...formData, hotelId: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 bg-white"
-                >
-                  <option value="">-- Chọn khách sạn --</option>
-                  {hotels.map((h) => (
-                    <option key={h.hotelId} value={h.hotelId} disabled={h.hasAdmin}>
-                      {h.hotelName} {h.hasAdmin ? `(⚠️ Đã có Admin: @${h.adminUsername})` : " (✅ Chưa có Admin)"}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  * Mỗi khách sạn chỉ có 1 Admin lớn. Các khách sạn đã có Admin sẽ bị vô hiệu hóa để đảm bảo logic.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Tên đăng nhập <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="ví dụ: admin_hcm"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Mật khẩu <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    placeholder="Tối thiểu 6 ký tự"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Email <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="admin@hotel.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Số điện thoại
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="0912345678"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Địa chỉ liên hệ
-                </label>
-                <input
-                  type="text"
-                  placeholder="Địa chỉ văn phòng quản lý"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
-                />
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={createLoading}
-                  className="px-6 py-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-600/30 transition disabled:opacity-50"
-                >
-                  {createLoading ? "Đang tạo..." : "Xác nhận Tạo & Bổ Nhiệm"}
-                </button>
-              </div>
-            </form>
+      {/* Overview Stat Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+          <span className="text-xs text-slate-500 font-medium">Tổng Cơ Sở Khách Sạn</span>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+            {hotels.length}
           </div>
         </div>
-      )}
+        <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+            Đã Bổ Nhiệm Admin
+          </span>
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+            {hotelsWithAdmin.length}
+          </div>
+        </div>
+        <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+            Chưa Có Admin
+          </span>
+          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+            {hotelsWithoutAdmin.length}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Table Card */}
+      <Card>
+        <CardHeader
+          title="Danh Sách Cơ Sở & Admin Đại Diện"
+          subtitle={`Hiển thị ${filteredHotels.length} cơ sở`}
+          action={
+            <div className="w-64">
+              <Input
+                placeholder="Tìm tên khách sạn, admin..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          }
+        />
+
+        <div className="overflow-x-auto">
+          {loading ? (
+            <div className="p-8">
+              <LoadingState message="Đang tải danh sách Admin khách sạn..." />
+            </div>
+          ) : filteredHotels.length === 0 ? (
+            <div className="p-8">
+              <EmptyState
+                icon="🏨"
+                title="Không tìm thấy cơ sở"
+                description="Không có khách sạn nào khớp với bộ lọc tìm kiếm hiện tại."
+              />
+            </div>
+          ) : (
+            <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th className="py-3 px-4">Khách Sạn (Hotel)</th>
+                  <th className="py-3 px-4">Tài Khoản Admin Lớn</th>
+                  <th className="py-3 px-4">Email & Liên Hệ</th>
+                  <th className="py-3 px-4">Trạng Thái Admin</th>
+                  <th className="py-3 px-4 text-right">Hành Động</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredHotels.map((h) => (
+                  <tr key={h.hotelId} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition">
+                    <td className="py-3 px-4">
+                      <div className="font-semibold text-slate-900 dark:text-white">
+                        {h.hotelName}
+                      </div>
+                      <span className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                        📍 {h.hotelLocation || "Hệ thống"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      {h.hasAdmin ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center justify-center">
+                            {h.adminUsername?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-slate-900 dark:text-white text-xs block">
+                              @{h.adminUsername}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              ID: #{h.adminId}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-md border border-amber-200 dark:border-amber-800">
+                          ⚠️ Chưa có Admin Lớn
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-xs">
+                      {h.hasAdmin ? (
+                        <>
+                          <span className="text-slate-800 dark:text-slate-200 font-medium block">
+                            {h.adminEmail || "Chưa cập nhật"}
+                          </span>
+                          <span className="text-slate-400 text-[11px]">
+                            {h.adminPhone || "Chưa có SĐT"}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-slate-400 italic text-xs">—</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      {h.hasAdmin ? (
+                        <StatusBadge
+                          status={h.adminActive ? "ACTIVE" : "INACTIVE"}
+                          type="hotel"
+                        />
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Trống</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      {!h.hasAdmin ? (
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          onClick={() => {
+                            setFormData({ ...formData, hotelId: String(h.hotelId) });
+                            setShowCreateModal(true);
+                          }}
+                        >
+                          Bổ Nhiệm
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Đã bổ nhiệm</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </Card>
+
+      {/* Modal Create Admin */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Tạo Tài Khoản Admin Cho Khách Sạn"
+        size="md"
+      >
+        <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Khách Sạn Bổ Nhiệm *
+            </label>
+            <Select
+              required
+              value={formData.hotelId}
+              onChange={(e) => setFormData({ ...formData, hotelId: e.target.value })}
+              options={[
+                { value: "", label: "-- Chọn khách sạn --" },
+                ...hotelsWithoutAdmin.map((h) => ({
+                  value: h.hotelId,
+                  label: `🏨 ${h.hotelName} (Chưa có Admin)`,
+                })),
+                ...hotelsWithAdmin.map((h) => ({
+                  value: h.hotelId,
+                  label: `🏨 ${h.hotelName} (Đã có: @${h.adminUsername})`,
+                })),
+              ]}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Tên Đăng Nhập (Username) *
+              </label>
+              <Input
+                required
+                placeholder="VD: admin_danang"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Mật Khẩu Khởi Tạo *
+              </label>
+              <Input
+                required
+                type="password"
+                placeholder="Tối thiểu 6 ký tự"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Email *
+              </label>
+              <Input
+                required
+                type="email"
+                placeholder="admin@hotel.vn"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Số Điện Thoại
+              </label>
+              <Input
+                placeholder="09xx xxx xxx"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Địa Chỉ / Ghi Chú
+            </label>
+            <Input
+              placeholder="Địa chỉ liên hệ..."
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setShowCreateModal(false)}
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={createLoading}
+            >
+              {createLoading ? "Đang tạo..." : "Xác Nhận Bổ Nhiệm"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
