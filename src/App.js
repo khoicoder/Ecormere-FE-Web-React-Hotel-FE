@@ -81,7 +81,7 @@ function App() {
           <Route
             path="/admin/hotels"
             element={
-              <AdminRoute adminOnly={true}>
+              <AdminRoute allowedRoles={["ADMIN", "SUPER_ADMIN", "RECEPTIONIST"]}>
                 <HotelManagement />
               </AdminRoute>
             }
@@ -97,7 +97,7 @@ function App() {
           <Route
             path="/admin/maintenance"
             element={
-              <AdminRoute adminOnly={true}>
+              <AdminRoute allowedRoles={["ADMIN", "SUPER_ADMIN", "RECEPTIONIST"]}>
                 <MaintenanceManagement />
               </AdminRoute>
             }

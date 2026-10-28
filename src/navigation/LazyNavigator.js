@@ -9,5 +9,6 @@ export const HotelManagement = lazy(() => import("../screens/Admin/HotelManageme
 export const EquipmentManagement = lazy(() => import("../screens/Admin/EquipmentManagement.jsx"));
 export const MaintenanceManagement = lazy(() => import("../screens/Admin/MaintenanceManagement.jsx"));
 export const ReceptionistDashboard = lazy(() => import("../screens/Receptionist/ReceptionistDashboard.jsx"));
+export const ReceptionistRoomPlan = lazy(() => import("../screens/Receptionist/ReceptionistRoomPlan.jsx"));
 export const ReceptionistManagement = lazy(() => import("../screens/Admin/ReceptionistManagement.jsx"));
 export const HotelAdminManagement = lazy(() => import("../screens/Admin/HotelAdminManagement.jsx"));

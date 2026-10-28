@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   fetchBookingsAPI,
   performCheckIn,
@@ -275,7 +276,27 @@ export default function ReceptionistDashboard() {
         badge={userRole}
         badgeVariant="success"
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/admin/hotels">
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<span>🏨</span>}
+                title="Xem sơ đồ buồng phòng cơ sở của bạn"
+              >
+                Sơ Đồ Phòng
+              </Button>
+            </Link>
+            <Link to="/admin/maintenance">
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<span>🛠️</span>}
+                title="Báo cáo hỏng hóc, sự cố kỹ thuật phòng"
+              >
+                Báo Sự Cố
+              </Button>
+            </Link>
             <Button
               variant="secondary"
               size="sm"

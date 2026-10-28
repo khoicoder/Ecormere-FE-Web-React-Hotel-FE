@@ -23,18 +23,19 @@ export default function MaintenanceManagement() {
 
   const userRole = localStorage.getItem("userRole") || "ADMIN";
   const isSuperAdmin = userRole === "SUPER_ADMIN";
+  const isReceptionist = userRole === "RECEPTIONIST";
 
   const [newTicket, setNewTicket] = useState({
     hotelId: 1,
-    hotelName: "Grand Luxury Hotel & Spa - TP.HCM",
-    roomId: 101,
-    roomNumber: "101",
-    equipmentName: "Điều Hòa Daikin",
+    hotelName: "",
+    roomId: null,
+    roomNumber: "",
+    equipmentName: "",
     title: "",
     description: "",
     priority: "MEDIUM",
     type: "REPAIR",
-    assignedStaff: "Kỹ sư Kỹ thuật",
+    assignedStaff: "Bộ phận Kỹ thuật",
   });
 
   const fetchTickets = async () => {
@@ -65,10 +66,34 @@ export default function MaintenanceManagement() {
     fetchTickets();
   }, []);
 
+  const handleOpenCreateForm = () => {
+    const currentHotel = hotels[0];
+    const hotelRooms = currentHotel?.rooms || (currentHotel?.floors || []).flatMap((f) => f.rooms || []);
+    const firstRoom = hotelRooms[0];
+    setNewTicket({
+      hotelId: currentHotel ? currentHotel.id : 1,
+      hotelName: currentHotel ? currentHotel.name : "Khách sạn cơ sở",
+      roomId: firstRoom ? firstRoom.id : null,
+      roomNumber: firstRoom ? (firstRoom.name || String(firstRoom.id)) : "",
+      equipmentName: "",
+      title: "",
+      description: "",
+      priority: "MEDIUM",
+      type: "REPAIR",
+      assignedStaff: "Bộ phận Kỹ thuật",
+    });
+    setShowForm(true);
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newTicket.title || !newTicket.description) {
       alert("Vui lòng nhập tiêu đề và mô tả sự cố!");
+      return;
+    }
+
+    if (!newTicket.roomId && !newTicket.roomNumber) {
+      alert("Vui lòng chọn phòng cần báo hỏng bảo trì!");
       return;
     }
 
@@ -77,18 +102,6 @@ export default function MaintenanceManagement() {
       setTickets([created, ...tickets]);
       setShowForm(false);
       setMsg("✅ Đã tạo phiếu yêu cầu bảo trì mới thành công!");
-      setNewTicket({
-        hotelId: 1,
-        hotelName: "Grand Luxury Hotel & Spa - TP.HCM",
-        roomId: 101,
-        roomNumber: "101",
-        equipmentName: "Điều Hòa Daikin",
-        title: "",
-        description: "",
-        priority: "MEDIUM",
-        type: "REPAIR",
-        assignedStaff: "Kỹ sư Kỹ thuật",
-      });
       setTimeout(() => setMsg(""), 3000);
     } catch (err) {
       alert("Lỗi tạo phiếu: " + (err.response?.data?.message || err.message));
@@ -131,14 +144,21 @@ export default function MaintenanceManagement() {
     return matchStatus && matchHotel;
   });
 
+  const selectedHotel = hotels.find((h) => Number(h.id) === Number(newTicket.hotelId)) || hotels[0];
+  const availableRooms = selectedHotel?.rooms || (selectedHotel?.floors || []).flatMap((f) => f.rooms || []);
+
   return (
     <div className="space-y-6">
       {/* SaaS Page Header */}
       <PageHeader
-        title="Quản Lý Phiếu Bảo Trì & Sửa Chữa"
-        subtitle="Tiếp nhận báo hỏng từ lễ tân/buồng phòng, điều phối kỹ sư và theo dõi tiến độ sửa chữa"
-        badge={isSuperAdmin ? "Super Admin" : "Hotel Admin"}
-        badgeVariant={isSuperAdmin ? "warning" : "info"}
+        title={isReceptionist ? "Báo Cáo Sự Cố Kỹ Thuật Cơ Sở" : "Quản Lý Phiếu Bảo Trì & Sửa Chữa"}
+        subtitle={
+          isReceptionist
+            ? `Báo hỏng phòng, thiết bị gửi bộ phận kỹ thuật của khách sạn ${hotels[0]?.name ? `(${hotels[0]?.name})` : ""}`
+            : "Tiếp nhận báo hỏng từ lễ tân/buồng phòng, điều phối kỹ sư và theo dõi tiến độ sửa chữa"
+        }
+        badge={isSuperAdmin ? "Super Admin" : isReceptionist ? "Lễ Tân" : "Hotel Admin"}
+        badgeVariant={isSuperAdmin ? "warning" : isReceptionist ? "success" : "info"}
         actions={
           <div className="flex items-center gap-2">
             <Button
@@ -153,7 +173,7 @@ export default function MaintenanceManagement() {
               variant="primary"
               size="sm"
               icon={<span>+</span>}
-              onClick={() => setShowForm(true)}
+              onClick={handleOpenCreateForm}
             >
               Tạo Phiếu Sự Cố
             </Button>
@@ -327,13 +347,54 @@ export default function MaintenanceManagement() {
         size="md"
       >
         <form onSubmit={handleCreate} className="space-y-4 text-xs">
+          {/* Hotel Information Banner or Selector */}
+          {isSuperAdmin && hotels.length > 1 ? (
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Chọn Khách Sạn Cơ Sở *
+              </label>
+              <Select
+                value={newTicket.hotelId}
+                onChange={(e) => {
+                  const hId = Number(e.target.value);
+                  const hObj = hotels.find((h) => h.id === hId);
+                  const rList = hObj?.rooms || (hObj?.floors || []).flatMap((f) => f.rooms || []);
+                  const firstR = rList[0];
+                  setNewTicket({
+                    ...newTicket,
+                    hotelId: hId,
+                    hotelName: hObj ? hObj.name : "",
+                    roomId: firstR ? firstR.id : null,
+                    roomNumber: firstR ? (firstR.name || String(firstR.id)) : "",
+                  });
+                }}
+                options={hotels.map((h) => ({
+                  value: h.id,
+                  label: `🏨 ${h.name} (${h.location || "Cơ sở"})`,
+                }))}
+              />
+            </div>
+          ) : (
+            <div className="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-between text-indigo-700 dark:text-indigo-300">
+              <div className="flex items-center gap-2">
+                <span>🏨</span>
+                <span className="font-semibold text-xs">
+                  Cơ sở: {selectedHotel?.name || "Khách sạn cơ sở của bạn"}
+                </span>
+              </div>
+              <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-2 py-0.5 rounded font-bold">
+                {isReceptionist ? "Lễ Tân Cơ Sở" : "Khách Sạn Trực Thuộc"}
+              </span>
+            </div>
+          )}
+
           <div>
             <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Tiêu Đề Sự Cố *
             </label>
             <Input
               required
-              placeholder="VD: Điều hòa không lạnh, có tiếng kêu to"
+              placeholder="VD: Điều hòa không mát, khóa từ bị kẹt, hỏng vòi sen"
               value={newTicket.title}
               onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
             />
@@ -342,26 +403,59 @@ export default function MaintenanceManagement() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Số Phòng Gặp Sự Cố
+                Phòng Cần Bảo Trì *
               </label>
-              <Input
-                placeholder="VD: 101"
-                value={newTicket.roomNumber}
-                onChange={(e) =>
-                  setNewTicket({
-                    ...newTicket,
-                    roomNumber: e.target.value,
-                    roomId: Number(e.target.value) || 101,
-                  })
-                }
-              />
+              {availableRooms && availableRooms.length > 0 ? (
+                <Select
+                  value={newTicket.roomId || ""}
+                  onChange={(e) => {
+                    const selId = Number(e.target.value);
+                    const foundR = availableRooms.find((r) => r.id === selId);
+                    setNewTicket({
+                      ...newTicket,
+                      roomId: selId || null,
+                      roomNumber: foundR ? (foundR.name || String(foundR.id)) : "",
+                    });
+                  }}
+                  options={[
+                    { value: "", label: "-- Chọn phòng trong danh sách --" },
+                    ...availableRooms.map((r) => {
+                      const stText =
+                        r.status === "AVAILABLE"
+                          ? "Trống"
+                          : r.status === "OCCUPIED"
+                          ? "Có khách"
+                          : r.status === "MAINTENANCE"
+                          ? "Bảo trì"
+                          : r.status || "";
+                      return {
+                        value: r.id,
+                        label: `🚪 Phòng ${r.name || r.id} (${r.type || "Tiêu chuẩn"}${stText ? ` - ${stText}` : ""})`,
+                      };
+                    }),
+                  ]}
+                />
+              ) : (
+                <Input
+                  required
+                  placeholder="VD: 101"
+                  value={newTicket.roomNumber}
+                  onChange={(e) =>
+                    setNewTicket({
+                      ...newTicket,
+                      roomNumber: e.target.value,
+                      roomId: Number(e.target.value) || null,
+                    })
+                  }
+                />
+              )}
             </div>
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Tên Thiết Bị
+                Tên Thiết Bị / Hạng Mục Hỏng
               </label>
               <Input
-                placeholder="VD: Điều Hòa Daikin"
+                placeholder="VD: Điều Hòa Daikin, Khóa cửa..."
                 value={newTicket.equipmentName}
                 onChange={(e) => setNewTicket({ ...newTicket, equipmentName: e.target.value })}
               />
@@ -379,16 +473,16 @@ export default function MaintenanceManagement() {
                 options={[
                   { value: "LOW", label: "🟢 Thấp - Định kỳ" },
                   { value: "MEDIUM", label: "🟡 Trung bình" },
-                  { value: "HIGH", label: "🔴 Khẩn cấp - Phòng có khách" },
+                  { value: "HIGH", label: "🔴 Khẩn cấp - Phòng đang có khách" },
                 ]}
               />
             </div>
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Kỹ Sư Tiếp Nhận
+                Kỹ Sư / Đội Tiếp Nhận
               </label>
               <Input
-                placeholder="VD: Nguyễn Văn Kỹ Sư"
+                placeholder="VD: Bộ phận Kỹ thuật ca sáng"
                 value={newTicket.assignedStaff}
                 onChange={(e) => setNewTicket({ ...newTicket, assignedStaff: e.target.value })}
               />
@@ -397,13 +491,13 @@ export default function MaintenanceManagement() {
 
           <div>
             <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Mô Tả Chi Tiết Vấn Đề *
+              Mô Tả Chi Tiết Hiện Trạng *
             </label>
             <textarea
               required
               rows={3}
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white bg-white dark:bg-slate-800 text-xs outline-none focus:border-indigo-500"
-              placeholder="Mô tả cụ thể hiện tượng hư hại, thời điểm phát hiện..."
+              placeholder="Mô tả cụ thể hiện tượng hư hại, thời điểm phát hiện, ảnh hưởng tới khách lưu trú..."
               value={newTicket.description}
               onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
             />

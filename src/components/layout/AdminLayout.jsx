@@ -57,9 +57,9 @@ export default function AdminLayout({ children }) {
     },
     // Room Inventory & Hotels
     {
-      label: isSuperAdmin ? "Quản Lý Khách Sạn" : "Sơ Đồ Phòng Cơ Sở",
+      label: isSuperAdmin ? "Quản Lý Khách Sạn" : isReceptionist ? "Sơ Đồ Phòng Theo Tầng" : "Sơ Đồ Phòng Cơ Sở",
       to: "/admin/hotels",
-      icon: "🏨",
+      icon: isReceptionist ? "🏢" : "🏨",
       visible: true,
     },
     // Facility: Equipment

@@ -10,6 +10,9 @@ export default function ProtectedRoute({ children, adminOnly = false, receptioni
   }
 
   if (allowedRoles && Array.isArray(allowedRoles) && !allowedRoles.includes(role)) {
+    if (role === "RECEPTIONIST") {
+      return <Navigate to="/receptionist/dashboard" replace />;
+    }
     return (
       <div className="p-8 max-w-lg mx-auto mt-12 bg-red-50 border border-red-200 text-center rounded-2xl">
         <h2 className="text-xl font-bold text-red-600">Quyền Truy Cập Bị Từ Chối</h2>
@@ -33,11 +36,14 @@ export default function ProtectedRoute({ children, adminOnly = false, receptioni
     );
   }
 
-  if (adminOnly && role !== "ADMIN" && role !== "SUPER_ADMIN" && role !== "RECEPTIONIST") {
+  if (adminOnly && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+    if (role === "RECEPTIONIST") {
+      return <Navigate to="/receptionist/dashboard" replace />;
+    }
     return (
       <div className="p-8 max-w-lg mx-auto mt-12 bg-red-50 border border-red-200 text-center rounded-2xl">
         <h2 className="text-xl font-bold text-red-600">Quyền Truy Cập Bị Từ Chối</h2>
-        <p className="text-slate-600 text-sm mt-2">Trang này chỉ dành cho quản trị viên (Admin) hoặc Lễ tân.</p>
+        <p className="text-slate-600 text-sm mt-2">Trang này chỉ dành cho quản trị viên (Admin).</p>
         <a href="/" className="inline-block mt-4 bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl">
           Trở về Trang Chủ
         </a>

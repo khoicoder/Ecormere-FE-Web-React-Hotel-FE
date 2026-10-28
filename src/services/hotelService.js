@@ -62,3 +62,13 @@ export const deleteHotel = async (id) => {
     throw error;
   }
 };
+
+export const getRoomsByHotelId = async (hotelId) => {
+  try {
+    const res = await api.get(`/hotels/${hotelId}/rooms`);
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (error) {
+    console.warn(`Error fetching rooms for hotel ${hotelId}:`, error.message);
+    return [];
+  }
+};
