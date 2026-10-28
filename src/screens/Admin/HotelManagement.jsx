@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ReceptionistRoomPlan from "../Receptionist/ReceptionistRoomPlan";
 import { getAdminHotels, createHotel, deleteHotel } from "../../services/hotelService";
 import PageHeader from "../../components/ui/PageHeader";
 import { Card, CardHeader, CardBody } from "../../components/ui/Card";
@@ -19,6 +20,11 @@ export default function HotelManagement() {
 
   const userRole = localStorage.getItem("userRole") || "ADMIN";
   const isSuperAdmin = userRole === "SUPER_ADMIN";
+  const isReceptionist = userRole === "RECEPTIONIST";
+
+  if (isReceptionist) {
+    return <ReceptionistRoomPlan />;
+  }
 
   const [newHotel, setNewHotel] = useState({
     name: "",
@@ -100,14 +106,16 @@ export default function HotelManagement() {
     <div className="space-y-6">
       {/* SaaS Page Header */}
       <PageHeader
-        title="Quản Lý Khách Sạn & Sơ Đồ Phòng"
+        title={isReceptionist ? "Sơ Đồ Phòng Khách Sạn Cơ Sở" : "Quản Lý Khách Sạn & Sơ Đồ Phòng"}
         subtitle={
           isSuperAdmin
             ? "Quản trị toàn diện danh mục khách sạn, chi nhánh, thông số phòng và biểu giá toàn hệ thống"
+            : isReceptionist
+            ? `Xem danh mục phòng, hiện trạng lưu trú và buồng phòng của khách sạn bạn phụ trách trực ${hotels[0]?.name ? `(${hotels[0]?.name})` : ""}`
             : "Quản trị thông tin và cơ cấu phòng của khách sạn được giao phụ trách"
         }
-        badge={isSuperAdmin ? "Super Admin" : "Hotel Admin"}
-        badgeVariant={isSuperAdmin ? "warning" : "info"}
+        badge={isSuperAdmin ? "Super Admin" : isReceptionist ? "Lễ Tân Cơ Sở" : "Hotel Admin"}
+        badgeVariant={isSuperAdmin ? "warning" : isReceptionist ? "success" : "info"}
         actions={
           <div className="flex items-center gap-2">
             <Button
